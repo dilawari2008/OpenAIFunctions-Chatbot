@@ -10,10 +10,6 @@ const slotSchema: Schema = new Schema<ISlot>(
       enum: Object.values(EAppointmentSlot),
     },
     date: { type: Date },
-    tier: {
-      type: String,
-      enum: Object.values(ESlotTier),
-    },
     available: { type: Boolean, default: true },
     appointmentId: { type: Schema.Types.ObjectId, ref: "Appointment" },
   },

@@ -49,32 +49,29 @@ export enum ESlotTier {
 }
 
 export enum EAppointmentSlot {
-  MORNING = "MORNING",
-  AFTERNOON = "AFTERNOON",
-  EVENING = "EVENING",
+  SLOT_1 = "SLOT_1",
+  SLOT_2 = "SLOT_2",
+  SLOT_3 = "SLOT_3",
+  SLOT_4 = "SLOT_4",
+  SLOT_5 = "SLOT_5",
+  SLOT_6 = "SLOT_6",
+  SLOT_7 = "SLOT_7",
+  SLOT_8 = "SLOT_8",
+  SLOT_9 = "SLOT_9",
+  SLOT_10 = "SLOT_10",
 }
 
-export const TierSlotMap = {
-  [ESlotTier.TWO_HOUR]: [EAppointmentSlot.MORNING, EAppointmentSlot.AFTERNOON],
-  [ESlotTier.ONE_HOUR]: [EAppointmentSlot.EVENING],
-};
-
-export const AppointmentTypeTierMap = {
-  [EAppointmentType.ROOT_CANAL]: [ESlotTier.TWO_HOUR],
-  [EAppointmentType.EMERGENCY]: [ESlotTier.TWO_HOUR],
-  [EAppointmentType.CLEANING]: [ESlotTier.TWO_HOUR],
-  [EAppointmentType.CHECKUP]: [ESlotTier.ONE_HOUR],
-};
-
-export const appointmentSlotToStartTimeMap = {
-  [EAppointmentSlot.MORNING]: 9,
-  [EAppointmentSlot.AFTERNOON]: 13,
-  [EAppointmentSlot.EVENING]: 17,
-};
-
-export const TierToCostMap = {
-  [ESlotTier.ONE_HOUR]: 100,
-  [ESlotTier.TWO_HOUR]: 200,
+export const AppointmentToStartTimeMap = {
+  [EAppointmentSlot.SLOT_1]: 8,
+  [EAppointmentSlot.SLOT_2]: 9,
+  [EAppointmentSlot.SLOT_3]: 10,
+  [EAppointmentSlot.SLOT_4]: 11,
+  [EAppointmentSlot.SLOT_5]: 12,
+  [EAppointmentSlot.SLOT_6]: 13,
+  [EAppointmentSlot.SLOT_7]: 14,
+  [EAppointmentSlot.SLOT_8]: 15,
+  [EAppointmentSlot.SLOT_9]: 16,
+  [EAppointmentSlot.SLOT_10]: 17,
 };
 
 export enum EUrgency {

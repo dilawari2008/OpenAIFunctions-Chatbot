@@ -12,4 +12,9 @@ SlotRouter.get(
 
 SlotRouter.post("/book", forwardRequest(SlotController.bookSlot));
 
+SlotRouter.post(
+  "/slots-for-the-month",
+  forwardRequest(SlotController.createSlotsForTheMonth)
+);
+
 export default SlotRouter;

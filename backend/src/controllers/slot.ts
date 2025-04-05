@@ -45,9 +45,15 @@ const bookSlot = async (req: Request, res: Response) => {
   res.sendFormatted(bookedSlot);
 };
 
+const createSlotsForTheMonth = async (req: Request, res: Response) => {
+  const result = await SlotService.createSlotsForTheMonth();
+  res.sendFormatted(result);
+};
+
 const SlotController = {
   getAvailableTimeSlotsForDateRange,
   bookSlot,
+  createSlotsForTheMonth,
 };
 
 export default SlotController;

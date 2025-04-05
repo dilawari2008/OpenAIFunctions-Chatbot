@@ -34,7 +34,6 @@ export interface IPatient extends IMongooseDocument {
 
 export interface IAppointment extends IMongooseDocument {
   patientId: Types.ObjectId;
-  appointmentType: EAppointmentType;
   status: EAppointmentStatus;
   selectedPaymentMode: EPaymentMode;
   notes: string;
@@ -44,7 +43,7 @@ export interface IAppointment extends IMongooseDocument {
 export interface ISlot extends IMongooseDocument {
   type: EAppointmentSlot;
   date: Date;
-  tier: ESlotTier;
+  appointmentType: EAppointmentType;
   available: boolean;
   appointmentId?: Types.ObjectId;
 }

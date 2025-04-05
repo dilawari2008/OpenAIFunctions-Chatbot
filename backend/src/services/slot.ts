@@ -1,6 +1,7 @@
 import { HttpStatusCodes } from "@/common/constants";
 import LOGGER from "@/common/logger";
 import { Slot } from "@/db/models/slot";
+import { EAppointmentSlot, EAppointmentType } from "@/enums";
 import createError from "http-errors";
 import { Types } from "mongoose";
 
@@ -51,9 +52,80 @@ const bookSlot = async (type: string, date: Date, appointmentId: string) => {
   return slot;
 };
 
+const createSlotsForTheMonth = async () => {
+  LOGGER.debug(`Creating slots for the month`);
+  
+  // Get current date and end of month
+  const currentDate = new Date();
+  const endOfMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() + 1,
+    0,
+    23,
+    59,
+    59,
+    999
+  );
+  
+  // Array to store bulk operations
+  const bulkOps = [];
+  
+  // Loop through each day from current date to end of month
+  for (let day = new Date(currentDate); day <= endOfMonth; day.setDate(day.getDate() + 1)) {
+    // Create a new date object for start of the day
+    const dateForSlot = new Date(day);
+    dateForSlot.setHours(0, 0, 0, 0);
+    
+    // Create 10 slots for each day
+    for (let slotNum = 1; slotNum <= 10; slotNum++) {
+      const slotType = `SLOT_${slotNum}` as EAppointmentSlot;
+      
+      // Determine appointment type based on slot number
+      let appointmentType;
+      if (slotNum <= 3) {
+        appointmentType = EAppointmentType.CLEANING;
+      } else if (slotNum <= 7) {
+        appointmentType = EAppointmentType.ROOT_CANAL;
+      } else {
+        appointmentType = EAppointmentType.CHECKUP;
+      }
+      
+      // Create upsert operation
+      bulkOps.push({
+        updateOne: {
+          filter: {
+            type: slotType,
+            date: dateForSlot,
+            appointmentType: appointmentType
+          },
+          update: {
+            $setOnInsert: {
+              type: slotType,
+              date: dateForSlot,
+              appointmentType: appointmentType,
+              available: true
+            }
+          },
+          upsert: true
+        }
+      });
+    }
+  }
+  
+  // Execute bulk operations if there are any
+  if (bulkOps.length > 0) {
+    const result = await Slot.bulkWrite(bulkOps);
+    LOGGER.debug(`Created ${result.upsertedCount} new slots for the month`);
+    return result;
+  }
+  
+  return { upsertedCount: 0 };
+};
+
 const SlotService = {
   getAvailableTimeSlotsForDateRange,
   bookSlot,
+  createSlotsForTheMonth,
 };
 
 export default SlotService;
