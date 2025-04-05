@@ -14,6 +14,7 @@ const notificationSchema: Schema = new Schema<INotification>(
       type: String,
       enum: Object.values(EUrgency),
     },
+    deleted: { type: Boolean, default: false },
   },
   {
     timestamps: true,

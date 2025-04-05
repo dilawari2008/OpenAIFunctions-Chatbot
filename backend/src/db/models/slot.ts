@@ -12,6 +12,7 @@ const slotSchema: Schema = new Schema<ISlot>(
     date: { type: Date },
     available: { type: Boolean, default: true },
     appointmentId: { type: Schema.Types.ObjectId, ref: "Appointment" },
+    deleted: { type: Boolean, default: false },
   },
   {
     timestamps: true,

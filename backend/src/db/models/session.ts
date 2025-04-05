@@ -7,6 +7,7 @@ const chatSessionSchema: Schema = new Schema<IChatSession>(
     sessionId: { type: String },
     messages: { type: [Schema.Types.Mixed], default: [] },
     patientId: { type: Schema.Types.ObjectId, ref: "Patient" },
+    deleted: { type: Boolean, default: false },
   },
   {
     timestamps: true,

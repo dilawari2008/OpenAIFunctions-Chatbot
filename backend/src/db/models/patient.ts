@@ -14,6 +14,7 @@ const patientSchema: Schema = new Schema<IPatient>(
     },
     sessionId: { type: String },
     verificationCode: { type: String },
+    deleted: { type: Boolean, default: false },
   },
   {
     timestamps: true,

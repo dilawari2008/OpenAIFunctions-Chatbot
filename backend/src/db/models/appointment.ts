@@ -30,6 +30,7 @@ const appointmentSchema: Schema = new Schema<IAppointment>(
     },
     notes: { type: String, default: "" },
     amount: { type: Number },
+    deleted: { type: Boolean, default: false },
   },
   {
     timestamps: true,
