@@ -25,7 +25,7 @@ export interface IMongooseDocument extends Document {
 
 export interface IPatient extends IMongooseDocument {
   fullName?: string;
-  phoneNumber: string;
+  phoneNumber: number;
   dateOfBirth?: Date;
   insuranceName?: EInsuranceName;
   sessionId?: string;

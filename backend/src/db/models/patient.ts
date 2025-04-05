@@ -6,7 +6,7 @@ import { Schema, Types } from "mongoose";
 const patientSchema: Schema = new Schema<IPatient>(
   {
     fullName: { type: String },
-    phoneNumber: { type: String },
+    phoneNumber: { type: Number },
     dateOfBirth: { type: Date },
     insuranceName: {
       type: String,
