@@ -1,5 +1,5 @@
 import DB from "@/db/db";
-import { EAppointmentSlot, ESlotTier } from "@/enums";
+import { EAppointmentSlot, EAppointmentType } from "@/enums";
 import { ISlot } from "@/interfaces/model";
 import { Schema } from "mongoose";
 
@@ -11,6 +11,10 @@ const slotSchema: Schema = new Schema<ISlot>(
     },
     date: { type: Date },
     available: { type: Boolean, default: true },
+    appointmentType: {
+      type: String,
+      enum: Object.values(EAppointmentType),
+    },
     appointmentId: { type: Schema.Types.ObjectId, ref: "Appointment" },
     deleted: { type: Boolean, default: false },
   },

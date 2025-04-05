@@ -43,11 +43,6 @@ export enum EAppointmentType {
   ROOT_CANAL = "ROOT_CANAL",
 }
 
-export enum ESlotTier {
-  ONE_HOUR = "ONE_HOUR",
-  TWO_HOUR = "THREE_HOUR",
-}
-
 export enum EAppointmentSlot {
   SLOT_1 = "SLOT_1",
   SLOT_2 = "SLOT_2",

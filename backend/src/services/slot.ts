@@ -72,6 +72,11 @@ const createSlotsForTheMonth = async () => {
   
   // Loop through each day from current date to end of month
   for (let day = new Date(currentDate); day <= endOfMonth; day.setDate(day.getDate() + 1)) {
+    // Skip Sundays (0 is Sunday in JavaScript's getDay())
+    if (day.getDay() === 0) {
+      continue;
+    }
+    
     // Create a new date object for start of the day
     const dateForSlot = new Date(day);
     dateForSlot.setHours(0, 0, 0, 0);
