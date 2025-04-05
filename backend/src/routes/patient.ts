@@ -33,7 +33,7 @@ const PatientRouter = Router({ mergeParams: true });
  *               email:
  *                 type: string
  *               phone:
- *                 type: string
+ *                 type: number
  *               address:
  *                 type: object
  *                 properties:
