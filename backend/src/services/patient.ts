@@ -29,7 +29,9 @@ const upsertPatient = async (phoneNumber: number) => {
     },
     { upsert: true, new: true }
   )) as IPatient;
-  LOGGER.debug(`Patient upserted successfully`, { patient: JSON.stringify(patient) });
+  LOGGER.debug(`Patient upserted successfully`, {
+    patient: JSON.stringify(patient),
+  });
 
   // Generate OTP for verification
   LOGGER.debug(`Generating OTP for phone number: ${phoneNumber}`);
@@ -47,7 +49,7 @@ const verifyPhoneNumber = async (
     `Verifying phone number: ${phoneNumber} with code: ${verificationCode}`
   );
 
-  const patient = await Patient.findOne({
+  let patient = await Patient.findOne({
     "contact.phoneNumber": phoneNumber,
     deleted: false,
   });
@@ -63,7 +65,11 @@ const verifyPhoneNumber = async (
 
   // Verify the OTP
   const isVerified = patient?.verificationCode === verificationCode;
-  LOGGER.debug(`OTP verification result`, { isVerified, patientCode: patient.verificationCode, providedCode: verificationCode });
+  LOGGER.debug(`OTP verification result`, {
+    isVerified,
+    patientCode: patient.verificationCode,
+    providedCode: verificationCode,
+  });
 
   if (!isVerified) {
     LOGGER.error(`Invalid verification code for phone number: ${phoneNumber}`);
@@ -75,28 +81,36 @@ const verifyPhoneNumber = async (
 
   // Clear verification code after successful verification
   LOGGER.debug(`Clearing verification code for patient ID: ${patient._id}`);
-  await Patient.updateOne(
+  patient = await Patient.findOneAndUpdate(
     { _id: patient._id },
-    { $set: { verificationCode: undefined } }
+    { $set: { verificationCode: "" } },
+    { new: true }
   );
-  LOGGER.debug(`Verification code cleared for patient ID: ${patient._id}`);
+  LOGGER.debug(`Verification code cleared for patient ID: ${patient?._id}`);
 
   // Merge sessions if verification successful
-  LOGGER.debug(`Merging sessions for patient ID: ${patient._id}, sessionId: ${patient.sessionId}`);
-  await SessionService.mergeSessions(patient._id, patient.sessionId);
-  LOGGER.debug(`Sessions merged for patient ID: ${patient._id}`);
+  LOGGER.debug(
+    `Merging sessions for patient ID: ${patient?._id}, sessionId: ${patient?.sessionId}`
+  );
+  if (patient?._id)
+    await SessionService.mergeSessions(patient?._id, patient?.sessionId);
+  LOGGER.debug(`Sessions merged for patient ID: ${patient?._id}`);
 
   // Check which mandatory fields are missing
   const missingFields = [];
-  if (!patient.fullName) missingFields.push("fullName");
-  if (!patient.dateOfBirth) missingFields.push("dateOfBirth");
-  LOGGER.debug(`Missing fields check`, { missingFields: JSON.stringify(missingFields) });
+  if (!patient?.fullName) missingFields.push("fullName");
+  if (!patient?.dateOfBirth) missingFields.push("dateOfBirth");
+  LOGGER.debug(`Missing fields check`, {
+    missingFields: JSON.stringify(missingFields),
+  });
 
   const result = {
-    ...patient.toObject(),
+    ...patient?.toObject(),
     missingFields,
   };
-  LOGGER.debug(`Verification completed successfully`, { result: JSON.stringify(result) });
+  LOGGER.debug(`Verification completed successfully`, {
+    result: JSON.stringify(result),
+  });
 
   return result;
 };
@@ -128,7 +142,9 @@ const getPatientByPhoneNumber = async (phoneNumber: number) => {
     "contact.phoneNumber": phoneNumber,
     deleted: false,
   });
-  LOGGER.debug(`Patient lookup by phone number result`, { patient: JSON.stringify(patient) });
+  LOGGER.debug(`Patient lookup by phone number result`, {
+    patient: JSON.stringify(patient),
+  });
 
   if (!patient) {
     LOGGER.error(`Patient with phone number ${phoneNumber} not found`);
@@ -145,7 +161,9 @@ const updatePatientDetails = async (
   patientId: string,
   patientData: UpdatePatientDTO
 ) => {
-  LOGGER.debug(`Updating patient details for ID: ${patientId}`, { patientData: JSON.stringify(patientData) });
+  LOGGER.debug(`Updating patient details for ID: ${patientId}`, {
+    patientData: JSON.stringify(patientData),
+  });
 
   // Create update object with only the fields that are provided
   const updateData: Partial<UpdatePatientDTO> = {};
@@ -157,17 +175,23 @@ const updatePatientDetails = async (
 
   if (patientData.dateOfBirth !== undefined) {
     updateData.dateOfBirth = patientData.dateOfBirth;
-    LOGGER.debug(`Adding dateOfBirth to update data: ${patientData.dateOfBirth}`);
+    LOGGER.debug(
+      `Adding dateOfBirth to update data: ${patientData.dateOfBirth}`
+    );
   }
 
   if (patientData.insuranceName !== undefined) {
     updateData.insuranceName = patientData.insuranceName;
-    LOGGER.debug(`Adding insuranceName to update data: ${patientData.insuranceName}`);
+    LOGGER.debug(
+      `Adding insuranceName to update data: ${patientData.insuranceName}`
+    );
   }
 
   if (patientData.insuranceId !== undefined) {
     updateData.insuranceId = patientData.insuranceId;
-    LOGGER.debug(`Adding insuranceId to update data: ${patientData.insuranceId}`);
+    LOGGER.debug(
+      `Adding insuranceId to update data: ${patientData.insuranceId}`
+    );
   }
 
   LOGGER.debug(`Final update data`, { updateData: JSON.stringify(updateData) });
@@ -183,7 +207,9 @@ const updatePatientDetails = async (
     { $set: updateData },
     { new: true }
   );
-  LOGGER.debug(`Patient update result`, { updatedPatient: JSON.stringify(updatedPatient) });
+  LOGGER.debug(`Patient update result`, {
+    updatedPatient: JSON.stringify(updatedPatient),
+  });
 
   if (!updatedPatient) {
     LOGGER.error(`Patient with ID ${patientId} not found during update`);
@@ -205,13 +231,15 @@ const addDependant = async (
     insuranceId?: string;
   }
 ) => {
-  LOGGER.debug(`Adding dependant for patient ID: ${patientId}`, { dependantData: JSON.stringify(dependantData) });
+  LOGGER.debug(`Adding dependant for patient ID: ${patientId}`, {
+    dependantData: JSON.stringify(dependantData),
+  });
 
   // Validate required fields
   if (!dependantData.fullName || !dependantData.dateOfBirth) {
-    LOGGER.error(`Missing required fields for dependant`, { 
-      hasFullName: !!dependantData.fullName, 
-      hasDateOfBirth: !!dependantData.dateOfBirth 
+    LOGGER.error(`Missing required fields for dependant`, {
+      hasFullName: !!dependantData.fullName,
+      hasDateOfBirth: !!dependantData.dateOfBirth,
     });
     throw createError(
       HttpStatusCodes.BAD_REQUEST,
@@ -225,7 +253,9 @@ const addDependant = async (
     _id: new Types.ObjectId(patientId),
     deleted: false,
   });
-  LOGGER.debug(`Parent patient lookup result`, { parentPatient: JSON.stringify(parentPatient) });
+  LOGGER.debug(`Parent patient lookup result`, {
+    parentPatient: JSON.stringify(parentPatient),
+  });
 
   if (!parentPatient) {
     LOGGER.error(`Parent patient with ID ${patientId} not found`);
@@ -247,12 +277,14 @@ const addDependant = async (
     },
     deleted: false,
   });
-  LOGGER.debug(`New dependant created`, { newDependant: JSON.stringify(newDependant) });
+  LOGGER.debug(`New dependant created`, {
+    newDependant: JSON.stringify(newDependant),
+  });
 
   // Send notification about successful dependant addition
-  LOGGER.debug(`Sending notification about dependant addition to parent`, { 
-    parentId: patientId, 
-    phoneNumber: parentPatient.contact.phoneNumber 
+  LOGGER.debug(`Sending notification about dependant addition to parent`, {
+    parentId: patientId,
+    phoneNumber: parentPatient.contact.phoneNumber,
   });
   NotificationService.createNotification(
     `Dependant ${dependantData.fullName} successfully added to your account.`,
@@ -276,7 +308,9 @@ const getDependants = async (patientId: string): Promise<IPatient[]> => {
     insuranceName: 1,
     insuranceId: 1,
   };
-  LOGGER.debug(`Using projection for dependants query`, { projection: JSON.stringify(projection) });
+  LOGGER.debug(`Using projection for dependants query`, {
+    projection: JSON.stringify(projection),
+  });
 
   const dependants = await Patient.find(
     {
@@ -285,9 +319,9 @@ const getDependants = async (patientId: string): Promise<IPatient[]> => {
     },
     projection
   );
-  LOGGER.debug(`Found dependants for patient ID: ${patientId}`, { 
-    count: dependants.length, 
-    dependants: JSON.stringify(dependants) 
+  LOGGER.debug(`Found dependants for patient ID: ${patientId}`, {
+    count: dependants.length,
+    dependants: JSON.stringify(dependants),
   });
 
   return dependants;
@@ -302,7 +336,9 @@ const getParentPatient = async (
     _id: new Types.ObjectId(dependantId),
     deleted: false,
   });
-  LOGGER.debug(`Dependant lookup result`, { dependant: JSON.stringify(dependant) });
+  LOGGER.debug(`Dependant lookup result`, {
+    dependant: JSON.stringify(dependant),
+  });
 
   if (!dependant) {
     LOGGER.error(`Dependant with ID ${dependantId} not found`);
@@ -313,7 +349,9 @@ const getParentPatient = async (
   }
 
   if (!dependant.contact.contactRef) {
-    LOGGER.error(`Patient with ID ${dependantId} is not a dependant (no parent reference found)`);
+    LOGGER.error(
+      `Patient with ID ${dependantId} is not a dependant (no parent reference found)`
+    );
     throw createError(
       HttpStatusCodes.BAD_REQUEST,
       `Patient with ID ${dependantId} is not a dependant (no parent reference found)`
@@ -325,7 +363,9 @@ const getParentPatient = async (
     _id: dependant.contact.contactRef,
     deleted: false,
   });
-  LOGGER.debug(`Parent patient lookup result`, { parentPatient: JSON.stringify(parentPatient) });
+  LOGGER.debug(`Parent patient lookup result`, {
+    parentPatient: JSON.stringify(parentPatient),
+  });
 
   if (!parentPatient) {
     LOGGER.error(`Parent patient for dependant ID ${dependantId} not found`);
@@ -373,7 +413,9 @@ const getPatients = async ({
 
   if (patientIds && patientIds.length > 0) {
     query._id = { $in: patientIds };
-    LOGGER.debug(`Added patientIds filter to query`, { idCount: patientIds.length });
+    LOGGER.debug(`Added patientIds filter to query`, {
+      idCount: patientIds.length,
+    });
   }
 
   if (fullName) {
@@ -411,9 +453,9 @@ const getPatients = async ({
   const patients = await Patient.find(query)
     .sort({ createdAt: -1 })
     .limit(limit);
-  LOGGER.debug(`Patient search results`, { 
-    count: patients.length, 
-    patients: JSON.stringify(patients) 
+  LOGGER.debug(`Patient search results`, {
+    count: patients.length,
+    patients: JSON.stringify(patients),
   });
 
   return patients;
@@ -426,14 +468,14 @@ const updateInsuranceDetails = async (
 ): Promise<IPatient | null> => {
   LOGGER.debug(`Updating insurance details for patient ID: ${patientId}`, {
     insuranceName,
-    insuranceId
+    insuranceId,
   });
 
   if (!insuranceName || insuranceName === EInsuranceName.NONE || !insuranceId) {
     LOGGER.error(`Invalid insurance details provided`, {
       hasInsuranceName: !!insuranceName,
       isNoneInsurance: insuranceName === EInsuranceName.NONE,
-      hasInsuranceId: !!insuranceId
+      hasInsuranceId: !!insuranceId,
     });
     throw createError(
       HttpStatusCodes.BAD_REQUEST,
@@ -450,10 +492,14 @@ const updateInsuranceDetails = async (
     },
     { new: true }
   );
-  LOGGER.debug(`Insurance update result`, { updatedPatient: JSON.stringify(updatedPatient) });
+  LOGGER.debug(`Insurance update result`, {
+    updatedPatient: JSON.stringify(updatedPatient),
+  });
 
   if (!updatedPatient) {
-    LOGGER.error(`Patient with ID ${patientId} not found during insurance update`);
+    LOGGER.error(
+      `Patient with ID ${patientId} not found during insurance update`
+    );
     throw createError(
       HttpStatusCodes.NOT_FOUND,
       `Patient with ID ${patientId} not found`
@@ -472,7 +518,9 @@ const hasVitalInfo = async (
   LOGGER.debug(`Patient lookup result`, { patient: JSON.stringify(patient) });
 
   if (!patient) {
-    LOGGER.error(`Patient with ID ${patientId} not found during vital info check`);
+    LOGGER.error(
+      `Patient with ID ${patientId} not found during vital info check`
+    );
     throw createError(
       HttpStatusCodes.NOT_FOUND,
       `Patient with ID ${patientId} not found`
@@ -482,14 +530,16 @@ const hasVitalInfo = async (
   const missingFields = [];
   if (!patient.fullName) missingFields.push("fullName");
   if (!patient.dateOfBirth) missingFields.push("dateOfBirth");
-  LOGGER.debug(`Vital info check results`, { 
-    hasFullName: !!patient.fullName, 
+  LOGGER.debug(`Vital info check results`, {
+    hasFullName: !!patient.fullName,
     hasDateOfBirth: !!patient.dateOfBirth,
-    missingFields: JSON.stringify(missingFields)
+    missingFields: JSON.stringify(missingFields),
   });
 
   if (missingFields.length > 0) {
-    LOGGER.error(`Patient is missing required fields`, { missingFields: JSON.stringify(missingFields) });
+    LOGGER.error(`Patient is missing required fields`, {
+      missingFields: JSON.stringify(missingFields),
+    });
     throw createError(
       HttpStatusCodes.BAD_REQUEST,
       `Patient is missing required fields: ${missingFields.join(", ")}`
@@ -500,7 +550,9 @@ const hasVitalInfo = async (
     fullName: patient?.fullName,
     dateOfBirth: patient?.dateOfBirth,
   };
-  LOGGER.debug(`Vital info retrieved successfully`, { vitalInfo: JSON.stringify(vitalInfo) });
+  LOGGER.debug(`Vital info retrieved successfully`, {
+    vitalInfo: JSON.stringify(vitalInfo),
+  });
 
   return vitalInfo;
 };
@@ -514,7 +566,9 @@ const hasValidInsurance = async (
   LOGGER.debug(`Patient lookup result`, { patient: JSON.stringify(patient) });
 
   if (!patient) {
-    LOGGER.error(`Patient with ID ${patientId} not found during insurance check`);
+    LOGGER.error(
+      `Patient with ID ${patientId} not found during insurance check`
+    );
     throw createError(
       HttpStatusCodes.NOT_FOUND,
       `Patient with ID ${patientId} not found`
@@ -525,14 +579,17 @@ const hasValidInsurance = async (
   if (!patient.insuranceName || patient.insuranceName === EInsuranceName.NONE)
     missingFields.push("insurance type");
   if (!patient.insuranceId) missingFields.push("insurance ID");
-  LOGGER.debug(`Insurance check results`, { 
-    hasInsuranceName: !!patient.insuranceName && patient.insuranceName !== EInsuranceName.NONE, 
+  LOGGER.debug(`Insurance check results`, {
+    hasInsuranceName:
+      !!patient.insuranceName && patient.insuranceName !== EInsuranceName.NONE,
     hasInsuranceId: !!patient.insuranceId,
-    missingFields: JSON.stringify(missingFields)
+    missingFields: JSON.stringify(missingFields),
   });
 
   if (missingFields.length > 0) {
-    LOGGER.error(`Patient is missing required insurance fields`, { missingFields: JSON.stringify(missingFields) });
+    LOGGER.error(`Patient is missing required insurance fields`, {
+      missingFields: JSON.stringify(missingFields),
+    });
     throw createError(
       HttpStatusCodes.BAD_REQUEST,
       `Patient is missing required insurance fields: ${missingFields.join(
@@ -545,7 +602,9 @@ const hasValidInsurance = async (
     insuranceName: patient?.insuranceName || EInsuranceName.NONE,
     insuranceId: patient?.insuranceId || "",
   };
-  LOGGER.debug(`Valid insurance information retrieved`, { result: JSON.stringify(result) });
+  LOGGER.debug(`Valid insurance information retrieved`, {
+    result: JSON.stringify(result),
+  });
 
   return result;
 };
