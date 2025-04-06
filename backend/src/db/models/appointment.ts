@@ -11,7 +11,12 @@ import { Schema } from "mongoose";
 const appointmentSchema: Schema = new Schema<IAppointment>(
   {
     patientId: { type: Schema.Types.ObjectId, ref: "Patient" },
-    date: { type: Date },
+    status: {
+      type: String,
+      enum: Object.values(EAppointmentStatus),
+    },
+    timing: { type: Date },
+    notes: { type: String, default: "" },
     slot: {
       type: String,
       enum: Object.values(EAppointmentSlot),
@@ -20,16 +25,6 @@ const appointmentSchema: Schema = new Schema<IAppointment>(
       type: String,
       enum: Object.values(EAppointmentType),
     },
-    status: {
-      type: String,
-      enum: Object.values(EAppointmentStatus),
-    },
-    selectedPaymentMode: {
-      type: String,
-      enum: Object.values(EPaymentMode),
-    },
-    notes: { type: String, default: "" },
-    amount: { type: Number },
     deleted: { type: Boolean, default: false },
   },
   {

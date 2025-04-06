@@ -4,17 +4,13 @@ import {
   EAppointmentSlot,
   EAppointmentStatus,
   EAppointmentType,
+  EBillStatus,
   EInsuranceName,
   ENotificationDestination,
   EPaymentMode,
   EUrgency,
   EUserType,
 } from "@/enums";
-
-export interface IUserObj {
-  userId: Types.ObjectId;
-  code?: string;
-}
 
 export interface IMongooseDocument extends Document {
   deleted?: boolean;
@@ -24,19 +20,31 @@ export interface IMongooseDocument extends Document {
 
 export interface IPatient extends IMongooseDocument {
   fullName?: string;
-  phoneNumber: number;
+  contact:
+    | { phoneNumber: number; contactRef?: never }
+    | { phoneNumber?: never; contactRef: Types.ObjectId };
   dateOfBirth?: Date;
   insuranceName?: EInsuranceName;
-  sessionId?: string;
   verificationCode?: string;
+}
+
+export interface IBilling extends IMongooseDocument {
+  name: string;
+  contact: string;
+  appointments: Types.ObjectId[];
+  amount: number;
+  paymentMode: EPaymentMode;
+  status: EBillStatus;
+  notes?: string;
 }
 
 export interface IAppointment extends IMongooseDocument {
   patientId: Types.ObjectId;
   status: EAppointmentStatus;
-  selectedPaymentMode: EPaymentMode;
-  notes: string;
-  amount: number;
+  timing: Date;
+  notes?: string;
+  slot: EAppointmentSlot;
+  appointmentType: EAppointmentType;
 }
 
 export interface ISlot extends IMongooseDocument {

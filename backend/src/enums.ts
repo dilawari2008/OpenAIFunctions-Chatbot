@@ -25,6 +25,7 @@ export enum EPaymentMode {
   CASH = "CASH",
   CREDIT = "CREDIT",
   PAYPAL = "PAYPAL",
+  INSURANCE = "INSURANCE",
 }
 
 export enum EAppointmentStatus {
@@ -36,6 +37,12 @@ export enum EAppointmentStatus {
   EXPIRED = "EXPIRED",
 }
 
+export enum EBillStatus {
+  PENDING = "PENDING",
+  SUCCESS = "SUCCESS",
+  FAILED = "FAILED",
+}
+
 export enum EAppointmentType {
   CLEANING = "CLEANING",
   CHECKUP = "CHECKUP",
@@ -45,9 +52,9 @@ export enum EAppointmentType {
 
 export const AppointmentTypeToPricingMap = {
   [EAppointmentType.CLEANING]: 100,
-  [EAppointmentType.CHECKUP]: 200,
-  [EAppointmentType.EMERGENCY]: 300,
-  [EAppointmentType.ROOT_CANAL]: 400,
+  [EAppointmentType.CHECKUP]: 100,
+  [EAppointmentType.EMERGENCY]: 100,
+  [EAppointmentType.ROOT_CANAL]: 100,
 };
 
 export enum EAppointmentSlot {

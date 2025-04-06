@@ -3,16 +3,26 @@ import { EInsuranceName } from "@/enums";
 import { IPatient } from "@/interfaces/model";
 import { Schema, Types } from "mongoose";
 
+const contactSchema = new Schema(
+  {
+    phoneNumber: { type: Number },
+    contactRef: { type: Schema.Types.ObjectId, ref: "Patient" },
+  },
+  { _id: false }
+);
+
 const patientSchema: Schema = new Schema<IPatient>(
   {
     fullName: { type: String },
-    phoneNumber: { type: Number },
+    contact: {
+      type: contactSchema,
+      required: true,
+    },
     dateOfBirth: { type: Date },
     insuranceName: {
       type: String,
       enum: Object.values(EInsuranceName),
     },
-    sessionId: { type: String },
     verificationCode: { type: String },
     deleted: { type: Boolean, default: false },
   },
