@@ -275,6 +275,7 @@ const addDependant = async (
     insuranceId: dependantData?.insuranceId,
     contact: {
       contactRef: new Types.ObjectId(patientId),
+      phoneNumber: parentPatient?.contact?.phoneNumber,
     },
     deleted: false,
   });

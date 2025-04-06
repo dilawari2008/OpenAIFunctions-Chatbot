@@ -38,6 +38,7 @@
     "moment-timezone": "^0.5.48",
     "mongoose": "^8.5.2",
     "nanoid": "^3.3.4",
+    "openai": "^4.91.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "tslib": "^2.6.3",

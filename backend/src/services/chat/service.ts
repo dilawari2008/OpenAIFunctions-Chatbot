@@ -85,7 +85,7 @@ const toolCalls = async (name: string, args: string) => {
     case "addDependant":
       const dependantParams = JSON.parse(args);
       return await PatientService.addDependant(
-        dependantParams.parentId,
+        dependantParams.patientId,
         dependantParams.dependantDetails
       );
     case "getDependants":

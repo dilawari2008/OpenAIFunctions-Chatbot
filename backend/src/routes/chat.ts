@@ -5,8 +5,9 @@ import { Router } from "express";
 
 const ChatRouter = Router({ mergeParams: true });
 
-ChatRouter.post("/session", forwardRequest(ChatController.getSession));
+ChatRouter.post("/session", forwardRequest(ChatController.createThread));
 ChatRouter.post("/merge", forwardRequest(ChatController.mergeSessions));
 ChatRouter.post("/process", forwardRequest(ChatController.processChat));
+ChatRouter.post("/assistant", forwardRequest(ChatController.createAssistant));
 
 export default ChatRouter;

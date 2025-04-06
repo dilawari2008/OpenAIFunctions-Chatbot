@@ -20,9 +20,7 @@ export interface IMongooseDocument extends Document {
 
 export interface IPatient extends IMongooseDocument {
   fullName?: string;
-  contact:
-    | { phoneNumber: number; contactRef?: never }
-    | { phoneNumber?: never; contactRef: Types.ObjectId };
+  contact: { phoneNumber?: number; contactRef?: never };
   dateOfBirth?: Date;
   insuranceName: EInsuranceName;
   insuranceId?: string;
