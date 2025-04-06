@@ -4,9 +4,14 @@ import { ChatSession } from "@/db/models/session";
 import { Types } from "mongoose";
 import createError from "http-errors";
 
-const getSession = async (patientId?: string | Types.ObjectId, sessionId?: string) => {
+const getSession = async (
+  patientId?: string | Types.ObjectId,
+  sessionId?: string
+) => {
   LOGGER.debug(
-    `Getting or creating session for patientId: ${patientId || "none"}, sessionId: ${sessionId || "none"}`
+    `Getting or creating session for patientId: ${
+      patientId || "none"
+    }, sessionId: ${sessionId || "none"}`
   );
 
   // If sessionId is provided, try to find session by id first
@@ -55,13 +60,13 @@ const mergeSessions = async (
   const patientObjectId = new Types.ObjectId(patientId);
 
   // Find patient's existing session if any
-  const existingSession = await ChatSession.findOne({
+  let existingSession = await ChatSession.findOne({
     patientId: patientObjectId,
     deleted: false,
   });
 
   // Find the current session
-  const currentSession = await ChatSession.findOne({
+  let currentSession = await ChatSession.findOne({
     sessionId,
     deleted: false,
   });
@@ -75,13 +80,20 @@ const mergeSessions = async (
 
   // If no existing session or current session is the existing session, just return current
   if (!existingSession || existingSession.sessionId === sessionId) {
+    currentSession = await ChatSession.findOneAndUpdate(
+      { _id: new Types.ObjectId(currentSession._id) },
+      { $set: { patientId: patientObjectId } },
+      { new: true }
+    );
+
     return currentSession;
   }
 
   // Merge sessions - append messages from current to existing and mark current as deleted
-  await ChatSession.findOneAndUpdate(
+  existingSession = await ChatSession.findOneAndUpdate(
     { _id: new Types.ObjectId(existingSession._id) },
-    { $push: { messages: { $each: currentSession.messages || [] } } }
+    { $push: { messages: { $each: currentSession.messages || [] } } },
+    { new: true }
   );
 
   // Mark current session as deleted
@@ -93,9 +105,18 @@ const mergeSessions = async (
   return existingSession;
 };
 
+const getPatientIdBySessionId = async (sessionId: string) => {
+  const session = await ChatSession.findOne({
+    sessionId,
+    deleted: false,
+  });
+  return session?.patientId;
+};
+
 const SessionService = {
   getSession,
   mergeSessions,
+  getPatientIdBySessionId,
 };
 
 export default SessionService;

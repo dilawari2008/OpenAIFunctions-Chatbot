@@ -90,7 +90,7 @@ const generateOTP = async (phoneNumber: string) => {
   // Create notification with the userId from the patient
   await createNotification(
     message,
-    EUrgency.HIGH,
+    EUrgency.LOW,
     EUserType.PATIENT,
     ENotificationDestination.SMS,
     patient._id.toString(),

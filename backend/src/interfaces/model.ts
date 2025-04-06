@@ -24,7 +24,7 @@ export interface IPatient extends IMongooseDocument {
     | { phoneNumber: number; contactRef?: never }
     | { phoneNumber?: never; contactRef: Types.ObjectId };
   dateOfBirth?: Date;
-  insuranceName?: EInsuranceName;
+  insuranceName: EInsuranceName;
   verificationCode?: string;
 }
 

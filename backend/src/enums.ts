@@ -19,6 +19,7 @@ export enum EInsuranceName {
   PROGRESSIVE = "PROGRESSIVE",
   GEICO = "GEICO",
   NATIONWIDE = "NATIONWIDE",
+  NONE = "NONE",
 }
 
 export enum EPaymentMode {
