@@ -90,9 +90,14 @@ const mergeSessions = async (
   }
 
   // Merge sessions - append messages from current to existing and mark current as deleted
+  // Filter out system messages from currentSession.messages
+  const filteredMessages = (currentSession.messages || []).filter(
+    (message: any) => message?.role !== "system"
+  );
+
   existingSession = await ChatSession.findOneAndUpdate(
     { _id: new Types.ObjectId(existingSession._id) },
-    { $push: { messages: { $each: currentSession.messages || [] } } },
+    { $push: { messages: { $each: filteredMessages } } },
     { new: true }
   );
 

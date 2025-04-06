@@ -492,7 +492,6 @@ const tools = [
   addDependant,
   getDependants,
   getParentPatient,
-  updateInsuranceDetails,
   getAppointments,
   getUpcomingAppointmentsForPatient,
   scheduleAppointment,
