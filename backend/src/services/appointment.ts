@@ -119,10 +119,31 @@ const scheduleAppointment = async ({
   });
 
   // Check if patient has vital information
-  await PatientService.hasVitalInfo(patientId.toString());
+  const vitalInfo = await PatientService.hasVitalInfo(patientId.toString());
 
-  if (paymentMode === EPaymentMode.INSURANCE)
-    await PatientService.hasValidInsurance(patientId.toString());
+  const missingFields = [];
+  if (!vitalInfo.fullName) missingFields.push("fullName");
+  if (!vitalInfo.dateOfBirth) missingFields.push("dateOfBirth");
+
+  if (missingFields.length > 0) {
+    throw new Error(
+      `Patient vital information missing: ${missingFields.join(", ")}`
+    );
+  }
+
+  if (paymentMode === EPaymentMode.INSURANCE) {
+    const insuranceInfo = await PatientService.hasValidInsurance(
+      patientId.toString()
+    );
+
+    // depeding on what is missing in insuranceInfo throw an error
+    if (!insuranceInfo.insuranceName) {
+      throw new Error("Insurance name is missing");
+    }
+    if (!insuranceInfo.insuranceId) {
+      throw new Error("Insurance ID is missing");
+    }
+  }
 
   // Convert inputs to ObjectId
   const objectIdSlotIds = slotIds.map((id) => new Types.ObjectId(id));

@@ -1,28 +1,3 @@
-// info functions
-const getAppointmentTypes = {
-  type: "function",
-  function: {
-    name: "getAppointmentTypes",
-    description: "Retrieves all available appointment types and their pricing.",
-  },
-};
-
-const getPaymentMethods = {
-  type: "function",
-  function: {
-    name: "getPaymentMethods",
-    description: "Retrieves all available payment methods.",
-  },
-};
-
-const getInsuranceProviders = {
-  type: "function",
-  function: {
-    name: "getInsuranceProviders",
-    description: "Retrieves all available insurance providers.",
-  },
-};
-
 // slot functions
 const getAvailableTimeSlots = {
   type: "function",
@@ -69,7 +44,7 @@ const upsertPatient = {
   function: {
     name: "upsertPatient",
     description:
-      "Creates a new patient or updates an existing one based on phone number, and generates an OTP for verification.",
+      "Creates a new patient or updates an existing one based on phone number, and generates an OTP for verification. Needs to be followed up with verifyPatient tool call.",
     parameters: {
       type: "object",
       properties: {
@@ -88,7 +63,7 @@ const verifyPatient = {
   function: {
     name: "verifyPatient",
     description:
-      "Verifies a patient's phone number using the provided verification code.",
+      "Verifies a patient's phone number using the provided verification code. For a new patient, this should be followed up with upsertPatient tool call.",
     parameters: {
       type: "object",
       properties: {
@@ -157,7 +132,11 @@ const updatePatientDetails = {
           },
         },
       },
-      required: ["patientId", "patientDetails"],
+      required: [
+        "patientId",
+        "patientDetails.fullName",
+        "patientDetails.dateOfBirth",
+      ],
     },
   },
 };
@@ -174,27 +153,33 @@ const addDependant = {
           type: "string",
           description: "The ID of the parent patient",
         },
-        fullName: {
-          type: "string",
-          description: "The dependant's full name",
-        },
-        dateOfBirth: {
-          type: "string",
-          format: "date",
-          description:
-            "The dependant's date of birth in ISO format (YYYY-MM-DD)",
-        },
-        insuranceName: {
-          type: "string",
-          description:
-            "The name of the dependant's insurance provider (optional)",
-        },
-        insuranceId: {
-          type: "string",
-          description: "The dependant's insurance ID number (optional)",
+        dependantDetails: {
+          fullName: {
+            type: "string",
+            description: "The dependant's full name",
+          },
+          dateOfBirth: {
+            type: "string",
+            format: "date",
+            description:
+              "The dependant's date of birth in ISO format (YYYY-MM-DD)",
+          },
+          insuranceName: {
+            type: "string",
+            description:
+              "The name of the dependant's insurance provider (optional)",
+          },
+          insuranceId: {
+            type: "string",
+            description: "The dependant's insurance ID number (optional)",
+          },
         },
       },
-      required: ["patientId", "fullName", "dateOfBirth"],
+      required: [
+        "patientId",
+        "dependantDetails.fullName",
+        "dependantDetails.dateOfBirth",
+      ],
     },
   },
 };
@@ -284,6 +269,14 @@ const getAppointments = {
         },
         status: {
           type: "string",
+          enum: [
+            "SCHEDULED",
+            "COMPLETED",
+            "CANCELLED",
+            "RESCHEDULED",
+            "PENDING",
+            "EXPIRED",
+          ],
           description: "Filter by appointment status",
         },
         timing: {
@@ -292,10 +285,23 @@ const getAppointments = {
         },
         slot: {
           type: "string",
+          enum: [
+            "SLOT_1",
+            "SLOT_2",
+            "SLOT_3",
+            "SLOT_4",
+            "SLOT_5",
+            "SLOT_6",
+            "SLOT_7",
+            "SLOT_8",
+            "SLOT_9",
+            "SLOT_10",
+          ],
           description: "Filter by appointment slot",
         },
         appointmentType: {
           type: "string",
+          enum: ["CLEANING", "CHECKUP", "ROOT_CANAL"],
           description: "Filter by appointment type",
         },
         limit: {
@@ -354,7 +360,7 @@ const scheduleAppointment = {
         paymentMode: {
           type: "string",
           description:
-            "Payment method for the appointment (e.g., INSURANCE, CASH, CARD)",
+            "Payment method for the appointment (INSURANCE, CASH, CREDIT, PAYPAL)",
         },
       },
       required: ["slotIds", "patientId", "paymentMode"],
@@ -434,7 +440,7 @@ const bulkScheduleAppointments = {
               paymentMode: {
                 type: "string",
                 description:
-                  "Payment method for the appointment (e.g., INSURANCE, CASH, CARD)",
+                  "Payment method for the appointment (INSURANCE, CASH, CREDIT, PAYPAL)",
               },
             },
             required: ["slotId", "patientId", "paymentMode"],
@@ -479,9 +485,6 @@ const sendEmergencyNotification = {
 const tools = [
   getAvailableTimeSlots,
   getCurrentDate,
-  getAppointmentTypes,
-  getPaymentMethods,
-  getInsuranceProviders,
   upsertPatient,
   verifyPatient,
   getPatientByPhoneNumber,

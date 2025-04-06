@@ -8,7 +8,7 @@ const DB = mongoose.createConnection(mongoConnectionUrl, {
   connectTimeoutMS: 60000,
 });
 
-mongoose.set("debug", true);
+mongoose.set("debug", false);
 DB.on("connected", () => {
   LOGGER.info(`Connected to db url ${mongoConnectionUrl}`);
 });

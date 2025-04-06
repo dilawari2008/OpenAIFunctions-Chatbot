@@ -5,12 +5,12 @@ import axios from "axios";
 import { PromptLibrary } from "./prompt-library";
 import tools from "./function";
 import { Types } from "mongoose";
-import InfoService from "@/services/info";
 import AppointmentService from "@/services/appointment";
 import NotificationService from "@/services/notification";
 import PatientService from "@/services/patient";
 
 const toolCalls = async (name: string, args: string) => {
+  console.log("Tool call:", name, args);
   switch (name) {
     case "getAvailableTimeSlots":
       const { from, to, limit } = JSON.parse(args);
@@ -31,12 +31,6 @@ const toolCalls = async (name: string, args: string) => {
 
     case "getCurrentDate":
       return await SlotService.getCurrentDateInUTC();
-    case "getAppointmentTypes":
-      return await InfoService.getAppointmentTypePricing();
-    case "getPaymentMethods":
-      return await InfoService.getPaymentMethods();
-    case "getInsuranceProviders":
-      return await InfoService.getInsuranceProviders();
     case "getAppointments":
       const appointmentParams = JSON.parse(args);
       return await AppointmentService.getAppointments(appointmentParams);
@@ -170,7 +164,12 @@ const processConversationWithTools = async (messages: any[]) => {
             content: JSON.stringify(result),
           });
         } catch (error: any) {
-          console.log(`Tool call error: ${name}`, args, error.message, error.stack);
+          console.log(
+            `Tool call error: ${name}`,
+            args,
+            error.message,
+            error.stack
+          );
 
           messages.push({
             role: "tool",

@@ -225,6 +225,66 @@ const addDependant = async (
   return newDependant;
 };
 
+const getDependants = async (patientId: string): Promise<IPatient[]> => {
+  LOGGER.debug(`Getting dependants for patient ID: ${patientId}`);
+
+  const projection = {
+    fullName: 1,
+    dateOfBirth: 1,
+    insuranceName: 1,
+    insuranceId: 1,
+  };
+
+  const dependants = await Patient.find(
+    {
+      "contact.contactRef": new Types.ObjectId(patientId),
+      deleted: false,
+    },
+    projection
+  );
+
+  return dependants;
+};
+
+const getParentPatient = async (
+  dependantId: string
+): Promise<IPatient | null> => {
+  LOGGER.debug(`Getting parent for dependant ID: ${dependantId}`);
+
+  const dependant = await Patient.findOne({
+    _id: new Types.ObjectId(dependantId),
+    deleted: false,
+  });
+
+  if (!dependant) {
+    throw createError(
+      HttpStatusCodes.NOT_FOUND,
+      `Dependant with ID ${dependantId} not found`
+    );
+  }
+
+  if (!dependant.contact.contactRef) {
+    throw createError(
+      HttpStatusCodes.BAD_REQUEST,
+      `Patient with ID ${dependantId} is not a dependant (no parent reference found)`
+    );
+  }
+
+  const parentPatient = await Patient.findOne({
+    _id: dependant.contact.contactRef,
+    deleted: false,
+  });
+
+  if (!parentPatient) {
+    throw createError(
+      HttpStatusCodes.NOT_FOUND,
+      `Parent patient for dependant ID ${dependantId} not found`
+    );
+  }
+
+  return parentPatient;
+};
+
 const getPatients = async ({
   patientIds,
   fullName,
@@ -291,45 +351,6 @@ const getPatients = async ({
   return patients;
 };
 
-const hasVitalInfo = async (patientId: string): Promise<boolean> => {
-  const patient = await Patient.findById(patientId);
-  if (!patient) return false;
-
-  const missingFields = [];
-  if (!patient.fullName) missingFields.push("fullName");
-  if (!patient.dateOfBirth) missingFields.push("dateOfBirth");
-
-  if (missingFields.length > 0) {
-    throw createError(
-      HttpStatusCodes.BAD_REQUEST,
-      `Patient is missing required fields: ${missingFields.join(", ")}`
-    );
-  }
-
-  return true;
-};
-
-const hasValidInsurance = async (patientId: string): Promise<boolean> => {
-  const patient = await Patient.findById(patientId);
-  if (!patient) return false;
-
-  const missingFields = [];
-  if (!patient.insuranceName || patient.insuranceName === EInsuranceName.NONE)
-    missingFields.push("insurance type");
-  if (!patient.insuranceId) missingFields.push("insurance ID");
-
-  if (missingFields.length > 0) {
-    throw createError(
-      HttpStatusCodes.BAD_REQUEST,
-      `Patient is missing required insurance fields: ${missingFields.join(
-        ", "
-      )}`
-    );
-  }
-
-  return true;
-};
-
 const updateInsuranceDetails = async (
   patientId: string,
   insuranceName: EInsuranceName,
@@ -361,64 +382,65 @@ const updateInsuranceDetails = async (
   return updatedPatient;
 };
 
-const getDependants = async (patientId: string): Promise<IPatient[]> => {
-  LOGGER.debug(`Getting dependants for patient ID: ${patientId}`);
-
-  const projection = {
-    fullName: 1,
-    dateOfBirth: 1,
-    insuranceName: 1,
-    insuranceId: 1,
-  };
-
-  const dependants = await Patient.find(
-    {
-      "contact.contactRef": new Types.ObjectId(patientId),
-      deleted: false,
-    },
-    projection
-  );
-
-  return dependants;
-};
-
-const getParentPatient = async (
-  dependantId: string
-): Promise<IPatient | null> => {
-  LOGGER.debug(`Getting parent for dependant ID: ${dependantId}`);
-
-  const dependant = await Patient.findOne({
-    _id: new Types.ObjectId(dependantId),
-    deleted: false,
-  });
-
-  if (!dependant) {
+const hasVitalInfo = async (
+  patientId: string
+): Promise<{ fullName?: string; dateOfBirth?: Date }> => {
+  const patient = await Patient.findById(patientId);
+  if (!patient) {
     throw createError(
       HttpStatusCodes.NOT_FOUND,
-      `Dependant with ID ${dependantId} not found`
+      `Patient with ID ${patientId} not found`
     );
   }
 
-  if (!dependant.contact.contactRef) {
+  const missingFields = [];
+  if (!patient.fullName) missingFields.push("fullName");
+  if (!patient.dateOfBirth) missingFields.push("dateOfBirth");
+
+  if (missingFields.length > 0) {
     throw createError(
       HttpStatusCodes.BAD_REQUEST,
-      `Patient with ID ${dependantId} is not a dependant (no parent reference found)`
+      `Patient is missing required fields: ${missingFields.join(", ")}`
     );
   }
 
-  const parentPatient = await Patient.findOne({
-    _id: dependant.contact.contactRef,
-    deleted: false,
-  });
+  const vitalInfo = {
+    fullName: patient?.fullName,
+    dateOfBirth: patient?.dateOfBirth,
+  };
 
-  if (!parentPatient) {
+  return vitalInfo;
+};
+
+const hasValidInsurance = async (
+  patientId: string
+): Promise<{ insuranceName: EInsuranceName; insuranceId: string }> => {
+  const patient = await Patient.findById(patientId);
+  if (!patient) {
     throw createError(
       HttpStatusCodes.NOT_FOUND,
-      `Parent patient for dependant ID ${dependantId} not found`
+      `Patient with ID ${patientId} not found`
     );
   }
 
-  return parentPatient;
+  const missingFields = [];
+  if (!patient.insuranceName || patient.insuranceName === EInsuranceName.NONE)
+    missingFields.push("insurance type");
+  if (!patient.insuranceId) missingFields.push("insurance ID");
+
+  if (missingFields.length > 0) {
+    throw createError(
+      HttpStatusCodes.BAD_REQUEST,
+      `Patient is missing required insurance fields: ${missingFields.join(
+        ", "
+      )}`
+    );
+  }
+
+  return {
+    insuranceName: patient?.insuranceName || EInsuranceName.NONE,
+    insuranceId: patient?.insuranceId || "",
+  };
 };
 
 const PatientService = {
