@@ -1,8 +1,16 @@
 import { HttpStatusCodes } from "@/common/constants";
 import LOGGER from "@/common/logger";
 import { Slot } from "@/db/models/slot";
-import { AppointmentToStartTimeMap, EAppointmentSlot, EAppointmentType } from "@/enums";
-import { getEndOfDayInUTC, getStartOfDayInUTC } from "@/utils";
+import {
+  AppointmentToStartTimeMap,
+  EAppointmentSlot,
+  EAppointmentType,
+} from "@/enums";
+import {
+  createDateWithSlotTime,
+  getEndOfDayInUTC,
+  getStartOfDayInUTC,
+} from "@/utils";
 import createError from "http-errors";
 import moment from "moment-timezone";
 import { Types } from "mongoose";
@@ -31,12 +39,6 @@ const getAvailableTimeSlotsForDateRange = async (
 };
 
 // Helper function to create a date with the slot's time
-const createDateWithSlotTime = (date: Date, slot: EAppointmentSlot): Date => {
-  const newDate = new Date(date);
-  const hour = AppointmentToStartTimeMap[slot];
-  newDate.setUTCHours(hour, 0, 0, 0);
-  return newDate;
-};
 
 const getAvailableTimeSlots = async (
   from: Date,
@@ -62,13 +64,13 @@ const getAvailableTimeSlots = async (
     .limit(limit);
 
   // Transform the slots to include the correct time
-  const transformedSlots = availableSlots.map(slot => {
+  const transformedSlots = availableSlots.map((slot) => {
     const { _doc, ...rest } = slot;
     const { type, ...slotData } = _doc;
-    
+
     return {
       ...slotData,
-      date: createDateWithSlotTime(slot.date, type as EAppointmentSlot)
+      date: createDateWithSlotTime(slot.date, type as EAppointmentSlot),
     };
   });
 
@@ -101,13 +103,13 @@ const getAvailableTimeSlotsByType = async (
     .limit(limit);
 
   // Transform the slots to include the correct time
-  const transformedSlots = availableSlots.map(slot => {
+  const transformedSlots = availableSlots.map((slot) => {
     const { _doc, ...rest } = slot;
     const { type, ...slotData } = _doc;
-    
+
     return {
       ...slotData,
-      date: createDateWithSlotTime(slot.date, type as EAppointmentSlot)
+      date: createDateWithSlotTime(slot.date, type as EAppointmentSlot),
     };
   });
 
@@ -127,6 +129,33 @@ const bookSlot = async (type: string, date: Date, appointmentId: string) => {
       $set: {
         available: false,
         appointmentId: new Types.ObjectId(appointmentId),
+      },
+    },
+    { new: true }
+  );
+
+  if (!slot) {
+    throw createError(
+      HttpStatusCodes.CONFLICT,
+      `Slot not available or already booked`
+    );
+  }
+
+  return slot;
+};
+
+const bookSlotUsingSlotIdAndAppointmentId = async (
+  slotId: Types.ObjectId,
+  appointmentId: Types.ObjectId
+) => {
+  LOGGER.debug(`Booking slot: ${slotId} for appointment: ${appointmentId}`);
+
+  const slot = await Slot.findOneAndUpdate(
+    { _id: slotId, available: true, deleted: false },
+    {
+      $set: {
+        available: false,
+        appointmentId: appointmentId,
       },
     },
     { new: true }
@@ -277,11 +306,77 @@ const getSlots = async ({
     query.appointmentId = appointmentId;
   }
 
-  const slots = await Slot.find(query)
-    .sort({ date: 1 })
-    .limit(limit);
+  const slots = await Slot.find(query).sort({ date: 1 }).limit(limit);
 
   return slots;
+};
+
+const areAllSlotsAvailable = async (
+  slotIds: (Types.ObjectId | string)[]
+): Promise<
+  | { type: EAppointmentSlot; appointmentType: EAppointmentType; date: Date }[]
+  | null
+> => {
+  LOGGER.debug("Checking if all slots are available", {
+    slotIds: JSON.stringify(slotIds),
+  });
+
+  if (!slotIds || slotIds.length === 0) {
+    return null;
+  }
+
+  const objectIdSlots = slotIds.map((id) =>
+    typeof id === "string" ? new Types.ObjectId(id) : id
+  );
+
+  // First check if all slots are available
+  const count = await Slot.countDocuments({
+    _id: { $in: objectIdSlots },
+    available: true,
+    deleted: false,
+  });
+
+  // If not all slots are available, return null
+  if (count !== slotIds.length) {
+    return null;
+  }
+
+  // If all slots are available, return the slots with projection
+  const slots = await Slot.find(
+    { _id: { $in: objectIdSlots }, available: true, deleted: false },
+    { type: 1, appointmentType: 1, date: 1 }
+  );
+
+  return slots;
+};
+
+const releaseSlot = async (appointmentId: Types.ObjectId | string) => {
+  LOGGER.debug(`Releasing slot for appointment: ${appointmentId}`);
+
+  const objectIdAppointmentId =
+    typeof appointmentId === "string"
+      ? new Types.ObjectId(appointmentId)
+      : appointmentId;
+
+  const slot = await Slot.findOneAndUpdate(
+    { appointmentId: objectIdAppointmentId, deleted: false },
+    {
+      $set: {
+        available: true,
+        appointmentId: undefined,
+      },
+    },
+    { new: true }
+  );
+
+  if (!slot) {
+    throw createError(
+      HttpStatusCodes.NOT_FOUND,
+      `No slot found for appointment: ${appointmentId}`
+    );
+  }
+
+  return slot;
 };
 
 const SlotService = {
@@ -292,6 +387,9 @@ const SlotService = {
   getAvailableTimeSlots,
   getAvailableTimeSlotsByType,
   getSlots,
+  areAllSlotsAvailable,
+  bookSlotUsingSlotIdAndAppointmentId,
+  releaseSlot,
 };
 
 export default SlotService;

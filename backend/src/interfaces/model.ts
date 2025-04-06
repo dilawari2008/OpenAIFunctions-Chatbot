@@ -36,7 +36,7 @@ export interface IBilling extends IMongooseDocument {
   paymentMode: EPaymentMode;
   status: EBillStatus;
   notes?: string;
-  isRefund?: boolean;
+  isRefund: boolean;
 }
 
 export interface IAppointment extends IMongooseDocument {
