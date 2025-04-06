@@ -93,9 +93,9 @@ const verifyPhoneNumber = async (
   LOGGER.debug(
     `Merging sessions for patient ID: ${patient?._id}, sessionId: ${patient?.sessionId}`
   );
-  if (patient?._id)
-    await SessionService.mergeSessions(patient?._id, patient?.sessionId);
-  LOGGER.debug(`Sessions merged for patient ID: ${patient?._id}`);
+  // if (patient?._id)
+  //   await SessionService.mergeSessions(patient?._id, patient?.sessionId);
+  // LOGGER.debug(`Sessions merged for patient ID: ${patient?._id}`);
 
   // Check which mandatory fields are missing
   const missingFields = [];

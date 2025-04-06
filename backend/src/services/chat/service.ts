@@ -142,7 +142,10 @@ const processConversationWithTools = async (messages: any[]) => {
   let continueProcessing = true;
 
   while (continueProcessing) {
-    const response = await callOpenAI(messages);
+    // Create a compact version of messages for OpenAI API
+    const compactMessages = createCompactMessages(messages);
+
+    const response = await callOpenAI(compactMessages);
 
     messages.push(response);
 
@@ -184,6 +187,27 @@ const processConversationWithTools = async (messages: any[]) => {
   }
 
   return messages;
+};
+
+const createCompactMessages = (messages: any[]) => {
+  // Find system message
+  const systemMessage = messages.find((msg) => msg.role === "system");
+
+  // Get last 5 non-system messages
+  const lastMessages = messages
+    .filter((msg) => msg.role !== "system")
+    .slice(-5);
+
+  // Create compact array with system message first, followed by last 5 messages
+  const compactMessages = [];
+
+  if (systemMessage) {
+    compactMessages.push(systemMessage);
+  }
+
+  compactMessages.push(...lastMessages);
+
+  return compactMessages;
 };
 
 const callOpenAI = async (messages: any[]) => {
