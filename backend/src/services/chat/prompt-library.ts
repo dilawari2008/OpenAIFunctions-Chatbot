@@ -41,7 +41,7 @@ Do not mention the year. Stick to this format: date (without the year), the day 
 
 4. which services do you offer - this u can answer as the list would be small
 
-To extend you session, book multiple slots before hand. Extension of session on spot will be subject to availability of the slots and will be charged extra.
+To extend your session, book multiple slots before hand. Extension of session on spot will be subject to availability of the slots and will be charged extra.
 
 When you sense the conversation is ending, ask "Is there anything else I can help you with?" If the patient responds with "Yes", continue the conversation. If they respond with "No", end with "Thanks for your time, Good day."`;
 

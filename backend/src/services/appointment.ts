@@ -1,106 +1,90 @@
-import { HttpStatusCodes } from "@/common/constants";
 import LOGGER from "@/common/logger";
 import { Appointment } from "@/db/models/appointment";
-import { Slot } from "@/db/models/slot";
-import { EAppointmentStatus, EPaymentMode } from "@/enums";
-import { IAppointment } from "@/interfaces/model";
-import SlotService from "@/services/slot";
-import createError from "http-errors";
 import { Types } from "mongoose";
+import { getEndOfDayInUTC, getStartOfDayInUTC } from "@/utils";
+import { EAppointmentStatus } from "@/enums";
 
-const bookTimeSlot = async (appointmentData: {
-  appointmentId?: string;
-  patientId: string;
-  date: Date;
-  slot: string;
-  appointmentType: string;
-  amount: number;
-  notes?: string;
+const getAppointments = async ({
+  patientId,
+  appointmentIds,
+  status,
+  timing,
+  slot,
+  appointmentType,
+  limit = 10,
+}: {
+  patientId: Types.ObjectId | string;
+  appointmentIds?: Types.ObjectId[] | string[];
+  status?: string;
+  timing?: Date;
+  slot?: string;
+  appointmentType?: string;
+  limit?: number;
 }) => {
-  LOGGER.debug(`appointmentData: ${JSON.stringify(appointmentData)}`);
+  const query: any = { deleted: false };
 
-  // Check if slot is available using findOneAndUpdate
-  const existingAppointment = await Appointment.findOne({
-    date: appointmentData.date,
-    slot: appointmentData.slot,
-    status: { $ne: EAppointmentStatus.CANCELLED },
-  });
+  // patientId is mandatory
+  query.patientId = new Types.ObjectId(patientId);
 
-  if (existingAppointment) {
-    throw createError(
-      HttpStatusCodes.CONFLICT,
-      `Appointment slot already booked`
-    );
+  if (appointmentIds && appointmentIds.length > 0) {
+    query._id = { $in: appointmentIds.map((id) => new Types.ObjectId(id)) };
   }
 
-  // Create new appointment using findOneAndUpdate with upsert
-  const appointment = await Appointment.findOneAndUpdate(
-    {
-      _id: new Types.ObjectId(appointmentData?.appointmentId || ""),
-    },
-    {
-      $set: {
-        patientId: new Types.ObjectId(appointmentData.patientId),
-        date: appointmentData.date,
-        slot: appointmentData.slot,
-        appointmentType: appointmentData.appointmentType,
-        status: EAppointmentStatus.PENDING,
-        selectedPaymentMode: EPaymentMode.CASH,
-        amount: appointmentData.amount,
-        notes: appointmentData.notes || "",
-      },
+  if (status) {
+    query.status = status;
+  }
 
-      //     patientId: Types.ObjectId;
-      // appointmentType: EAppointmentType;
-      // status: EAppointmentStatus;
-      // selectedPaymentMode: EPaymentMode;
-      // notes: string;
-      // amount: number;
-    },
-    { upsert: true, new: true }
-  );
+  if (timing) {
+    query.timing = {
+      $gte: getStartOfDayInUTC(timing),
+      $lte: getEndOfDayInUTC(timing),
+    };
+  }
 
-  return appointment;
+  if (slot) {
+    query.slot = slot;
+  }
+
+  if (appointmentType) {
+    query.appointmentType = appointmentType;
+  }
+
+  const appointments = await Appointment.find(query)
+    .sort({ timing: 1 })
+    .limit(limit);
+
+  return appointments;
 };
 
-const makePayment = async (
-  appointmentId: string,
-  selectedPaymentMode: EPaymentMode
-) => {
-  LOGGER.debug(
-    `Processing payment for appointment: ${appointmentId}, payment mode: ${selectedPaymentMode}`
-  );
+const getUpcomingAppointmentsForPatient = async ({
+  patientId,
+  limit = 10,
+}: {
+  patientId: Types.ObjectId | string;
+  limit?: number;
+}) => {
+  LOGGER.debug("Getting upcoming appointments for patient", {
+    patientId: JSON.stringify(patientId),
+    limit,
+  });
 
-  const appointment = await Appointment.findOneAndUpdate(
-    { _id: new Types.ObjectId(appointmentId) },
-    {
-      $set: {
-        selectedPaymentMode,
-        status: EAppointmentStatus.SCHEDULED,
-      },
-    },
-    { new: true }
-  );
+  const query: any = {
+    deleted: false,
+    patientId: new Types.ObjectId(patientId),
+    timing: { $gte: new Date() },
+    status: EAppointmentStatus.SCHEDULED,
+  };
 
-  if (!appointment) {
-    throw createError(
-      HttpStatusCodes.NOT_FOUND,
-      `Appointment not found with id: ${appointmentId}`
-    );
-  }
+  const appointments = await Appointment.find(query)
+    .sort({ timing: 1 })
+    .limit(limit);
 
-  const slot = await SlotService.bookSlot(
-    appointment.slot,
-    appointment.date,
-    appointment._id.toString()
-  );
-
-  return appointment;
+  return appointments;
 };
 
 const AppointmentService = {
-  bookTimeSlot,
-  makePayment,
+  getAppointments,
+  getUpcomingAppointmentsForPatient,
 };
 
 export default AppointmentService;

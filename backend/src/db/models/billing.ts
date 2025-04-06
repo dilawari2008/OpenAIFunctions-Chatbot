@@ -14,6 +14,7 @@ const billingSchema: Schema = new Schema<IBilling>(
       enum: Object.values(EPaymentMode),
       default: EPaymentMode.CASH,
     },
+    isRefund: { type: Boolean, default: false },
     status: {
       type: String,
       enum: Object.values(EBillStatus),

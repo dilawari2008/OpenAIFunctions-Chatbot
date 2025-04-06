@@ -219,6 +219,66 @@ const addDependant = async (
   return newDependant;
 };
 
+const getPatients = async ({
+  patientIds,
+  fullName,
+  phoneNumber,
+  insuranceName,
+  dateOfBirth,
+  contactRef,
+  limit = 10,
+}: {
+  patientIds?: Types.ObjectId[];
+  fullName?: string;
+  phoneNumber?: number;
+  insuranceName?: EInsuranceName;
+  dateOfBirth?: Date;
+  contactRef?: Types.ObjectId;
+  limit?: number;
+}) => {
+  LOGGER.debug("Getting patients with filters", {
+    patientIds: JSON.stringify(patientIds),
+    fullName,
+    phoneNumber,
+    insuranceName,
+    dateOfBirth,
+    contactRef,
+    limit,
+  });
+
+  const query: any = { deleted: false };
+
+  if (patientIds && patientIds.length > 0) {
+    query._id = { $in: patientIds };
+  }
+
+  if (fullName) {
+    query.fullName = { $regex: fullName, $options: "i" };
+  }
+
+  if (phoneNumber) {
+    query["contact.phoneNumber"] = phoneNumber;
+  }
+
+  if (insuranceName) {
+    query.insuranceName = insuranceName;
+  }
+
+  if (dateOfBirth) {
+    query.dateOfBirth = dateOfBirth;
+  }
+
+  if (contactRef) {
+    query["contact.contactRef"] = contactRef;
+  }
+
+  const patients = await Patient.find(query)
+    .sort({ createdAt: -1 })
+    .limit(limit);
+
+  return patients;
+};
+
 const PatientService = {
   upsertPatient,
   verifyPhoneNumber,
@@ -226,6 +286,7 @@ const PatientService = {
   getPatientByPhoneNumber,
   updatePatientDetails,
   addDependant,
+  getPatients,
 };
 
 export default PatientService;

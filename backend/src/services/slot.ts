@@ -224,6 +224,66 @@ const getCurrentDateInUTC = () => {
   return getStartOfDayInUTC(new Date());
 };
 
+const getSlots = async ({
+  slotIds,
+  type,
+  date,
+  available,
+  appointmentType,
+  appointmentId,
+  limit = 10,
+}: {
+  slotIds?: Types.ObjectId[];
+  type?: EAppointmentSlot;
+  date?: Date;
+  available?: boolean;
+  appointmentType?: EAppointmentType;
+  appointmentId?: Types.ObjectId;
+  limit?: number;
+}) => {
+  LOGGER.debug("Getting slots with filters", {
+    slotIds: JSON.stringify(slotIds),
+    type,
+    date,
+    available,
+    appointmentType,
+    appointmentId,
+    limit,
+  });
+
+  const query: any = { deleted: false };
+
+  if (slotIds && slotIds.length > 0) {
+    query._id = { $in: slotIds };
+  }
+
+  if (type) {
+    query.type = type;
+  }
+
+  if (date) {
+    query.date = getStartOfDayInUTC(date);
+  }
+
+  if (available !== undefined) {
+    query.available = available;
+  }
+
+  if (appointmentType) {
+    query.appointmentType = appointmentType;
+  }
+
+  if (appointmentId) {
+    query.appointmentId = appointmentId;
+  }
+
+  const slots = await Slot.find(query)
+    .sort({ date: 1 })
+    .limit(limit);
+
+  return slots;
+};
+
 const SlotService = {
   getAvailableTimeSlotsForDateRange,
   bookSlot,
@@ -231,6 +291,7 @@ const SlotService = {
   getCurrentDateInUTC,
   getAvailableTimeSlots,
   getAvailableTimeSlotsByType,
+  getSlots,
 };
 
 export default SlotService;
