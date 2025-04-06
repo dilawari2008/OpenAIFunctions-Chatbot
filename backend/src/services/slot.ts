@@ -11,6 +11,7 @@ import {
   getEndOfDayInUTC,
   getStartOfDayInUTC,
 } from "@/utils";
+import createHttpError from "http-errors";
 import createError from "http-errors";
 import moment from "moment-timezone";
 import { Types } from "mongoose";
@@ -256,7 +257,7 @@ const bookSlot = async (type: string, date: Date, appointmentId: string) => {
       date: JSON.stringify(startOfDay),
       appointmentId,
     });
-    throw createError(
+    throw createHttpError(
       HttpStatusCodes.CONFLICT,
       `Slot not available or already booked`
     );
@@ -298,7 +299,7 @@ const bookSlotUsingSlotIdAndAppointmentId = async (
       slotId: JSON.stringify(slotId),
       appointmentId: JSON.stringify(appointmentId),
     });
-    throw createError(
+    throw createHttpError(
       HttpStatusCodes.CONFLICT,
       `Slot not available or already booked`
     );
@@ -596,7 +597,7 @@ const releaseSlot = async (appointmentId: Types.ObjectId | string) => {
     LOGGER.error(`No slot found for appointment`, {
       appointmentId: JSON.stringify(objectIdAppointmentId),
     });
-    throw createError(
+    throw createHttpError(
       HttpStatusCodes.NOT_FOUND,
       `No slot found for appointment: ${appointmentId}`
     );

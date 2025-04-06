@@ -3,6 +3,7 @@ import LOGGER from "@/common/logger";
 import { ChatSession } from "@/db/models/session";
 import { Types } from "mongoose";
 import createError from "http-errors";
+import createHttpError from "http-errors";
 
 const getSession = async (
   patientId?: string | Types.ObjectId,
@@ -72,7 +73,7 @@ const mergeSessions = async (
   });
 
   if (!currentSession) {
-    throw createError(
+    throw createHttpError(
       HttpStatusCodes.NOT_FOUND,
       `Session not found with id: ${sessionId}`
     );

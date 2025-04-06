@@ -6,6 +6,7 @@ import { ENotificationDestination, EUrgency, EUserType } from "@/enums";
 import { INotification } from "@/interfaces/model";
 import PatientService from "@/services/patient";
 import { generateShortCode } from "@/utils";
+import createHttpError from "http-errors";
 import createError from "http-errors";
 import { Types } from "mongoose";
 
@@ -107,7 +108,7 @@ const generateOTP = async (phoneNumber: string) => {
   );
 
   if (!patient) {
-    throw createError(
+    throw createHttpError(
       HttpStatusCodes.NOT_FOUND,
       `Patient not found with phoneNumber: ${phoneNumber}`
     );

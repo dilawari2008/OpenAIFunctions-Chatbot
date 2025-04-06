@@ -13,6 +13,7 @@ import {
   EUserType,
 } from "@/enums";
 import { Types } from "mongoose";
+import createHttpError from "http-errors";
 
 const upsertPatient = async (phoneNumber: number) => {
   LOGGER.debug(`Upserting patient with phone number: ${phoneNumber}`);
@@ -57,7 +58,7 @@ const verifyPhoneNumber = async (
 
   if (!patient) {
     LOGGER.error(`Patient with phone number ${phoneNumber} not found`);
-    throw createError(
+    throw createHttpError(
       HttpStatusCodes.NOT_FOUND,
       `Patient with phone number ${phoneNumber} not found`
     );
@@ -73,7 +74,7 @@ const verifyPhoneNumber = async (
 
   if (!isVerified) {
     LOGGER.error(`Invalid verification code for phone number: ${phoneNumber}`);
-    throw createError(
+    throw createHttpError(
       HttpStatusCodes.UNAUTHORIZED,
       "Invalid verification code"
     );
@@ -126,7 +127,7 @@ const getPatient = async (patientId: string) => {
 
   if (!patient) {
     LOGGER.error(`Patient with ID ${patientId} not found`);
-    throw createError(
+    throw createHttpError(
       HttpStatusCodes.NOT_FOUND,
       `Patient with ID ${patientId} not found`
     );
@@ -148,7 +149,7 @@ const getPatientByPhoneNumber = async (phoneNumber: number) => {
 
   if (!patient) {
     LOGGER.error(`Patient with phone number ${phoneNumber} not found`);
-    throw createError(
+    throw createHttpError(
       HttpStatusCodes.NOT_FOUND,
       `Patient with phone number ${phoneNumber} not found`
     );
@@ -213,7 +214,7 @@ const updatePatientDetails = async (
 
   if (!updatedPatient) {
     LOGGER.error(`Patient with ID ${patientId} not found during update`);
-    throw createError(
+    throw createHttpError(
       HttpStatusCodes.NOT_FOUND,
       `Patient with ID ${patientId} not found`
     );
@@ -241,7 +242,7 @@ const addDependant = async (
       hasFullName: !!dependantData.fullName,
       hasDateOfBirth: !!dependantData.dateOfBirth,
     });
-    throw createError(
+    throw createHttpError(
       HttpStatusCodes.BAD_REQUEST,
       "Dependant name and date of birth are required"
     );
@@ -259,7 +260,7 @@ const addDependant = async (
 
   if (!parentPatient) {
     LOGGER.error(`Parent patient with ID ${patientId} not found`);
-    throw createError(
+    throw createHttpError(
       HttpStatusCodes.NOT_FOUND,
       `Parent patient with ID ${patientId} not found`
     );
@@ -342,7 +343,7 @@ const getParentPatient = async (
 
   if (!dependant) {
     LOGGER.error(`Dependant with ID ${dependantId} not found`);
-    throw createError(
+    throw createHttpError(
       HttpStatusCodes.NOT_FOUND,
       `Dependant with ID ${dependantId} not found`
     );
@@ -352,7 +353,7 @@ const getParentPatient = async (
     LOGGER.error(
       `Patient with ID ${dependantId} is not a dependant (no parent reference found)`
     );
-    throw createError(
+    throw createHttpError(
       HttpStatusCodes.BAD_REQUEST,
       `Patient with ID ${dependantId} is not a dependant (no parent reference found)`
     );
@@ -369,7 +370,7 @@ const getParentPatient = async (
 
   if (!parentPatient) {
     LOGGER.error(`Parent patient for dependant ID ${dependantId} not found`);
-    throw createError(
+    throw createHttpError(
       HttpStatusCodes.NOT_FOUND,
       `Parent patient for dependant ID ${dependantId} not found`
     );
@@ -477,7 +478,7 @@ const updateInsuranceDetails = async (
       isNoneInsurance: insuranceName === EInsuranceName.NONE,
       hasInsuranceId: !!insuranceId,
     });
-    throw createError(
+    throw createHttpError(
       HttpStatusCodes.BAD_REQUEST,
       "Both insurance name and insurance ID are required"
     );
@@ -500,7 +501,7 @@ const updateInsuranceDetails = async (
     LOGGER.error(
       `Patient with ID ${patientId} not found during insurance update`
     );
-    throw createError(
+    throw createHttpError(
       HttpStatusCodes.NOT_FOUND,
       `Patient with ID ${patientId} not found`
     );
@@ -521,7 +522,7 @@ const hasVitalInfo = async (
     LOGGER.error(
       `Patient with ID ${patientId} not found during vital info check`
     );
-    throw createError(
+    throw createHttpError(
       HttpStatusCodes.NOT_FOUND,
       `Patient with ID ${patientId} not found`
     );
@@ -540,7 +541,7 @@ const hasVitalInfo = async (
     LOGGER.error(`Patient is missing required fields`, {
       missingFields: JSON.stringify(missingFields),
     });
-    throw createError(
+    throw createHttpError(
       HttpStatusCodes.BAD_REQUEST,
       `Patient is missing required fields: ${missingFields.join(", ")}`
     );
@@ -569,7 +570,7 @@ const hasValidInsurance = async (
     LOGGER.error(
       `Patient with ID ${patientId} not found during insurance check`
     );
-    throw createError(
+    throw createHttpError(
       HttpStatusCodes.NOT_FOUND,
       `Patient with ID ${patientId} not found`
     );
@@ -590,7 +591,7 @@ const hasValidInsurance = async (
     LOGGER.error(`Patient is missing required insurance fields`, {
       missingFields: JSON.stringify(missingFields),
     });
-    throw createError(
+    throw createHttpError(
       HttpStatusCodes.BAD_REQUEST,
       `Patient is missing required insurance fields: ${missingFields.join(
         ", "
