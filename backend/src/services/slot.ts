@@ -1,7 +1,7 @@
 import { HttpStatusCodes } from "@/common/constants";
 import LOGGER from "@/common/logger";
 import { Slot } from "@/db/models/slot";
-import { EAppointmentSlot, EAppointmentType } from "@/enums";
+import { AppointmentToStartTimeMap, EAppointmentSlot, EAppointmentType } from "@/enums";
 import { getEndOfDayInUTC, getStartOfDayInUTC } from "@/utils";
 import createError from "http-errors";
 import moment from "moment-timezone";
@@ -30,6 +30,14 @@ const getAvailableTimeSlotsForDateRange = async (
   return availableSlots;
 };
 
+// Helper function to create a date with the slot's time
+const createDateWithSlotTime = (date: Date, slot: EAppointmentSlot): Date => {
+  const newDate = new Date(date);
+  const hour = AppointmentToStartTimeMap[slot];
+  newDate.setUTCHours(hour, 0, 0, 0);
+  return newDate;
+};
+
 const getAvailableTimeSlots = async (
   from: Date,
   to: Date,
@@ -48,12 +56,23 @@ const getAvailableTimeSlots = async (
       date: { $gte: startOfDay, $lte: endOfDay },
       available: true,
     },
-    { appointmentType: 1, date: 1 }
+    { appointmentType: 1, date: 1, type: 1 }
   )
     .sort({ date: 1 })
     .limit(limit);
 
-  return availableSlots;
+  // Transform the slots to include the correct time
+  const transformedSlots = availableSlots.map(slot => {
+    const { _doc, ...rest } = slot;
+    const { type, ...slotData } = _doc;
+    
+    return {
+      ...slotData,
+      date: createDateWithSlotTime(slot.date, type as EAppointmentSlot)
+    };
+  });
+
+  return transformedSlots;
 };
 
 const getAvailableTimeSlotsByType = async (
@@ -76,12 +95,23 @@ const getAvailableTimeSlotsByType = async (
       available: true,
       appointmentType: type,
     },
-    { date: 1 }
+    { date: 1, type: 1 }
   )
     .sort({ date: 1 })
     .limit(limit);
 
-  return availableSlots;
+  // Transform the slots to include the correct time
+  const transformedSlots = availableSlots.map(slot => {
+    const { _doc, ...rest } = slot;
+    const { type, ...slotData } = _doc;
+    
+    return {
+      ...slotData,
+      date: createDateWithSlotTime(slot.date, type as EAppointmentSlot)
+    };
+  });
+
+  return transformedSlots;
 };
 
 const bookSlot = async (type: string, date: Date, appointmentId: string) => {
