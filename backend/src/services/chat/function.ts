@@ -19,7 +19,7 @@ const getAvailableTimeSlots = {
         },
         "limit": {
           "type": "integer",
-          "description": "Maximum number of time slots to return (default: 3)",
+          "description": "Maximum number of time slots to return (default: 10)",
           "default": 1,
         },
       },
@@ -27,6 +27,39 @@ const getAvailableTimeSlots = {
     },
   },
 };
+
+const getAvailableTimeSlotsByType = {
+  "type": "function",
+  "function": {
+    "name": "getAvailableTimeSlotsByType",
+    "description":
+      "Retrieves available appointment time slots within a specified date range for a specific appointment type.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "string",
+          "description": "Start date in YYYY-MM-DD format.",
+        },
+        "to": {
+          "type": "string",
+          "description": "End date in YYYY-MM-DD format.",
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of appointment to find slots for.",
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Maximum number of time slots to return (default: 10)",
+          "default": 10,
+        },
+      },
+      "required": ["from", "to", "type"],
+    },
+  },
+};
+
 
 const getCurrentDate = {
   "type": "function",

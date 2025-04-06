@@ -10,11 +10,22 @@ import InfoService from "@/services/info";
 const toolCalls = async (name: string, args: string) => {
   switch (name) {
     case "getAvailableTimeSlots":
-      const { from, to } = JSON.parse(args);
-      return await SlotService.getAvailableTimeSlotsForDateRange(
+      const { from, to, limit } = JSON.parse(args);
+      return await SlotService.getAvailableTimeSlots(
         getStartOfDayInUTC(from),
-        getStartOfDayInUTC(to)
+        getStartOfDayInUTC(to),
+        limit
       );
+
+    case "getAvailableTimeSlotsByType":
+      const { from1, to1, type, limit1 } = JSON.parse(args);
+      return await SlotService.getAvailableTimeSlotsByType(
+        getStartOfDayInUTC(from1),
+        getStartOfDayInUTC(to1),
+        type,
+        limit1
+      );
+
     case "getCurrentDate":
       return await SlotService.getCurrentDateInUTC();
     case "getAppointmentTypes":

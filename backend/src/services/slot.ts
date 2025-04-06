@@ -7,7 +7,11 @@ import createError from "http-errors";
 import moment from "moment-timezone";
 import { Types } from "mongoose";
 
-const getAvailableTimeSlotsForDateRange = async (from: Date, to: Date) => {
+const getAvailableTimeSlotsForDateRange = async (
+  from: Date,
+  to: Date,
+  limit: number = 10
+) => {
   LOGGER.debug(`Fetching available slots for date: ${from} to ${to}`);
 
   // Set the date to start of the day (00:00:00:000)
@@ -19,7 +23,63 @@ const getAvailableTimeSlotsForDateRange = async (from: Date, to: Date) => {
   const availableSlots = await Slot.find({
     date: { $gte: startOfDay, $lte: endOfDay },
     available: true,
-  }).sort({ slot: 1 });
+  })
+    .sort({ date: 1 })
+    .limit(limit);
+
+  return availableSlots;
+};
+
+const getAvailableTimeSlots = async (
+  from: Date,
+  to: Date,
+  limit: number = 10
+) => {
+  LOGGER.debug(`Fetching available slots for date: ${from} to ${to}`);
+
+  // Set the date to start of the day (00:00:00:000)
+  const startOfDay = getStartOfDayInUTC(from);
+
+  const endOfDay = getEndOfDayInUTC(to);
+
+  // Find all available slots for the given date
+  const availableSlots = await Slot.find(
+    {
+      date: { $gte: startOfDay, $lte: endOfDay },
+      available: true,
+    },
+    { appointmentType: 1, date: 1 }
+  )
+    .sort({ date: 1 })
+    .limit(limit);
+
+  return availableSlots;
+};
+
+const getAvailableTimeSlotsByType = async (
+  from: Date,
+  to: Date,
+  type: EAppointmentType,
+  limit: number = 10
+) => {
+  LOGGER.debug(`Fetching available slots for date: ${from} to ${to}`);
+
+  // Set the date to start of the day (00:00:00:000)
+  const startOfDay = getStartOfDayInUTC(from);
+
+  const endOfDay = getEndOfDayInUTC(to);
+
+  // Find all available slots for the given date
+  const availableSlots = await Slot.find(
+    {
+      date: { $gte: startOfDay, $lte: endOfDay },
+      available: true,
+      appointmentType: type,
+    },
+    { date: 1 }
+  )
+    .sort({ date: 1 })
+    .limit(limit);
 
   return availableSlots;
 };
@@ -54,7 +114,7 @@ const bookSlot = async (type: string, date: Date, appointmentId: string) => {
 
 const createSlotsForTheMonth = async () => {
   LOGGER.debug(`Creating slots for the month`);
-  
+
   // Get current date and end of month
   const currentDate = new Date();
   const endOfMonth = new Date(
@@ -66,24 +126,28 @@ const createSlotsForTheMonth = async () => {
     59,
     999
   );
-  
+
   // Array to store bulk operations
   const bulkOps = [];
-  
+
   // Loop through each day from current date to end of month
-  for (let day = new Date(currentDate); day <= endOfMonth; day.setDate(day.getDate() + 1)) {
+  for (
+    let day = new Date(currentDate);
+    day <= endOfMonth;
+    day.setDate(day.getDate() + 1)
+  ) {
     // Skip Sundays (0 is Sunday in JavaScript's getDay())
     // if (day.getDay() === 0) {
     //   continue;
     // }
-    
+
     // Create a new date object for start of the day in UTC
     const dateForSlot = getStartOfDayInUTC(day);
-    
+
     // Create 10 slots for each day
     for (let slotNum = 1; slotNum <= 10; slotNum++) {
       const slotType = `SLOT_${slotNum}` as EAppointmentSlot;
-      
+
       // Determine appointment type based on slot number
       let appointmentType;
       if (slotNum <= 3) {
@@ -93,36 +157,36 @@ const createSlotsForTheMonth = async () => {
       } else {
         appointmentType = EAppointmentType.CHECKUP;
       }
-      
+
       // Create upsert operation
       bulkOps.push({
         updateOne: {
           filter: {
             type: slotType,
             date: dateForSlot,
-            appointmentType: appointmentType
+            appointmentType: appointmentType,
           },
           update: {
             $setOnInsert: {
               type: slotType,
               date: dateForSlot,
               appointmentType: appointmentType,
-              available: true
-            }
+              available: true,
+            },
           },
-          upsert: true
-        }
+          upsert: true,
+        },
       });
     }
   }
-  
+
   // Execute bulk operations if there are any
   if (bulkOps.length > 0) {
     const result = await Slot.bulkWrite(bulkOps);
     LOGGER.debug(`Created ${result.upsertedCount} new slots for the month`);
     return result;
   }
-  
+
   return { upsertedCount: 0 };
 };
 
@@ -135,6 +199,8 @@ const SlotService = {
   bookSlot,
   createSlotsForTheMonth,
   getCurrentDateInUTC,
+  getAvailableTimeSlots,
+  getAvailableTimeSlotsByType,
 };
 
 export default SlotService;
