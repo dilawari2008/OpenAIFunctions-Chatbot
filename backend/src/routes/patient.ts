@@ -8,59 +8,6 @@ const PatientRouter = Router({ mergeParams: true });
 
 /**
  * @swagger
- * /api/patients:
- *   post:
- *     summary: Create or update patient
- *     description: Creates a new patient record or updates an existing one
- *     tags: [Patients]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               id:
- *                 type: string
- *                 description: Patient ID (if updating)
- *               firstName:
- *                 type: string
- *               lastName:
- *                 type: string
- *               dateOfBirth:
- *                 type: string
- *                 format: date
- *               email:
- *                 type: string
- *               phone:
- *                 type: number
- *               address:
- *                 type: object
- *                 properties:
- *                   street:
- *                     type: string
- *                   city:
- *                     type: string
- *                   state:
- *                     type: string
- *                   zipCode:
- *                     type: string
- *               medicalHistory:
- *                 type: array
- *                 items:
- *                   type: object
- *     responses:
- *       200:
- *         description: Patient created or updated successfully
- *       400:
- *         description: Invalid input
- *       500:
- *         description: Server error
- */
-PatientRouter.post("/", forwardRequest(PatientController.upsertPatient));
-
-/**
- * @swagger
  * /api/patients/{id}:
  *   get:
  *     summary: Get patient by ID
