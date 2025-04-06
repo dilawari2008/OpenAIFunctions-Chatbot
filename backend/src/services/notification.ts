@@ -101,7 +101,7 @@ const generateOTP = async (phoneNumber: string) => {
 
   // First update the patient with OTP and get the user object
   const patient = await Patient.findOneAndUpdate(
-    { phoneNumber, deleted: false },
+    { "contact.phoneNumber": phoneNumber, deleted: false },
     { $set: { verificationCode: otp } },
     { new: true }
   );

@@ -74,7 +74,7 @@ const makePayment = async (
       EUrgency.MEDIUM,
       EUserType.PATIENT,
       ENotificationDestination.SMS,
-      billing.patientId.toString(),
+      createBillingDTO?.patientId?.toString(),
       billing.contact
     );
 

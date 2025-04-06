@@ -19,12 +19,12 @@ const upsertPatient = async (phoneNumber: number) => {
 
   const patient = (await Patient.findOneAndUpdate(
     {
-      phoneNumber,
+      "contact.phoneNumber": phoneNumber,
       deleted: false,
     },
     {
       $set: {
-        phoneNumber,
+        "contact.phoneNumber": phoneNumber,
       },
     },
     { upsert: true, new: true }
@@ -45,7 +45,7 @@ const verifyPhoneNumber = async (
   );
 
   const patient = await Patient.findOne({
-    phoneNumber,
+    "contact.phoneNumber": phoneNumber,
     deleted: false,
   });
 
@@ -108,7 +108,7 @@ const getPatientByPhoneNumber = async (phoneNumber: number) => {
   LOGGER.debug(`Fetching patient with phone number: ${phoneNumber}`);
 
   const patient = await Patient.findOne({
-    phoneNumber,
+    "contact.phoneNumber": phoneNumber,
     deleted: false,
   });
 
@@ -398,7 +398,7 @@ const getParentPatient = async (
       `Dependant with ID ${dependantId} not found`
     );
   }
-  
+
   if (!dependant.contact.contactRef) {
     throw createError(
       HttpStatusCodes.BAD_REQUEST,

@@ -115,6 +115,7 @@ const scheduleAppointment = async ({
   LOGGER.debug("Scheduling appointment", {
     slotIds: JSON.stringify(slotIds),
     patientId: JSON.stringify(patientId),
+    paymentMode,
   });
 
   // Check if patient has vital information
@@ -209,7 +210,11 @@ const scheduleAppointment = async ({
     });
   }
 
-  let phoneNumber = patient?.phoneNumber;
+  let phoneNumber = patient?.contact?.phoneNumber;
+
+  LOGGER.debug("Patient details", {
+    patient: JSON.stringify(patient),
+  });
 
   if (!phoneNumber) {
     // get the parent phone number
@@ -226,7 +231,7 @@ const scheduleAppointment = async ({
     EUserType.PATIENT,
     ENotificationDestination.SMS,
     objectIdPatientId.toString(),
-    phoneNumber
+    phoneNumber?.toString()
   );
 
   NotificationService.createNotification(

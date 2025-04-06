@@ -7,13 +7,14 @@ import NotificationService from "@/services/notification";
  * Get notifications for the current user
  */
 export const getNotifications = async (req: Request, res: Response) => {
-  const { userType, userId } = req.body;
+  const { userType, userId, phoneNumber } = req.body;
 
   LOGGER.debug(`Getting notifications for user: ${userId}, type: ${userType}`);
 
   const notifications = await NotificationService.getNotificationsList(
     userType,
-    userId
+    userId,
+    phoneNumber
   );
 
   res.sendFormatted(notifications);

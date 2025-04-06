@@ -6,6 +6,9 @@ import { PromptLibrary } from "./prompt-library";
 import tools from "./function";
 import { Types } from "mongoose";
 import InfoService from "@/services/info";
+import AppointmentService from "@/services/appointment";
+import NotificationService from "@/services/notification";
+import PatientService from "@/services/patient";
 
 const toolCalls = async (name: string, args: string) => {
   switch (name) {
@@ -34,6 +37,79 @@ const toolCalls = async (name: string, args: string) => {
       return await InfoService.getPaymentMethods();
     case "getInsuranceProviders":
       return await InfoService.getInsuranceProviders();
+    case "getAppointments":
+      const appointmentParams = JSON.parse(args);
+      return await AppointmentService.getAppointments(appointmentParams);
+    case "getUpcomingAppointmentsForPatient":
+      const upcomingParams = JSON.parse(args);
+      return await AppointmentService.getUpcomingAppointmentsForPatient(
+        upcomingParams
+      );
+    case "scheduleAppointment":
+      const scheduleParams = JSON.parse(args);
+      return await AppointmentService.scheduleAppointment(scheduleParams);
+    case "cancelAppointment":
+      const cancelParams = JSON.parse(args);
+      return await AppointmentService.cancelAppointment(cancelParams);
+    case "rescheduleAppointment":
+      const rescheduleParams = JSON.parse(args);
+      return await AppointmentService.rescheduleAppointment(rescheduleParams);
+    case "bulkScheduleAppointments":
+      const bulkScheduleParams = JSON.parse(args);
+      return await AppointmentService.bulkScheduleAppointments(
+        bulkScheduleParams.appointmentRequests
+      );
+    case "sendEmergencyNotification":
+      const emergencyParams = JSON.parse(args);
+      return await NotificationService.sendEmergencyNotification(
+        emergencyParams.emergencySummary,
+        emergencyParams.phoneNumber,
+        emergencyParams.patientName
+      );
+    case "upsertPatient":
+      const upsertParams = JSON.parse(args);
+      return await PatientService.upsertPatient(
+        Number(upsertParams.phoneNumber)
+      );
+    case "verifyPatient":
+      const verifyParams = JSON.parse(args);
+      return await PatientService.verifyPhoneNumber(
+        Number(verifyParams.phoneNumber),
+        verifyParams.verificationCode
+      );
+    case "getPatientByPhoneNumber":
+      const patientPhoneParams = JSON.parse(args);
+      return await PatientService.getPatientByPhoneNumber(
+        Number(patientPhoneParams.phoneNumber)
+      );
+    case "updatePatientDetails":
+      const updatePatientParams = JSON.parse(args);
+      return await PatientService.updatePatientDetails(
+        updatePatientParams.patientId,
+        updatePatientParams.patientDetails
+      );
+    case "addDependant":
+      const dependantParams = JSON.parse(args);
+      return await PatientService.addDependant(
+        dependantParams.parentId,
+        dependantParams.dependantDetails
+      );
+    case "getDependants":
+      const getDependantsParams = JSON.parse(args);
+      return await PatientService.getDependants(getDependantsParams.patientId);
+    case "getParentPatient":
+      const parentPatientParams = JSON.parse(args);
+      return await PatientService.getParentPatient(
+        parentPatientParams.dependantId
+      );
+    case "updateInsuranceDetails":
+      const insuranceParams = JSON.parse(args);
+      return await PatientService.updateInsuranceDetails(
+        insuranceParams.patientId,
+        insuranceParams.insuranceName,
+        insuranceParams.insuranceId
+      );
+
     default:
       throw new Error(`Tool call ${name} not found`);
   }
@@ -94,7 +170,7 @@ const processConversationWithTools = async (messages: any[]) => {
             content: JSON.stringify(result),
           });
         } catch (error: any) {
-          console.log(`Tool call error: ${name}`, args, error.message);
+          console.log(`Tool call error: ${name}`, args, error.message, error.stack);
 
           messages.push({
             role: "tool",
