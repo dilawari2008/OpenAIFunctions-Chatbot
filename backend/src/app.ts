@@ -8,10 +8,6 @@ import { errorHandlerMiddleware } from "@/middlewares";
 import InitRoutes from "@/routes";
 import { HTTPLogger } from "@/common";
 import { nanoid } from "nanoid";
-// @ts-ignore
-import swaggerJsdoc from "swagger-jsdoc";
-// @ts-ignore
-import swaggerUi from "swagger-ui-express";
 
 // in prod use .env, while development use .env.dev, do not put connection strings in .env as .env is not in .dockerignore
 config({ path: ".env.dev" });
@@ -75,27 +71,6 @@ InitRoutes(app);
 
 // global catch
 app.use(errorHandlerMiddleware);
-
-// Swagger definition
-const swaggerOptions = {
-  definition: {
-    openapi: "3.0.0",
-    info: {
-      title: "Dental Bot",
-      version: "1.0.0",
-      description: "API documentation for your backend services",
-    },
-    servers: [
-      {
-        url: `http://localhost:${port}`, // Update with your server URL
-      },
-    ],
-  },
-  apis: ["./src/routes/*.ts"], // Path to the API routes
-};
-
-const swaggerDocs = swaggerJsdoc(swaggerOptions);
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // start listening on port for HTTP requests
 app.listen(port, () => {
