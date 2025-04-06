@@ -5,6 +5,7 @@ export interface UpdatePatientDTO {
   fullName?: string;
   dateOfBirth?: Date;
   insuranceName?: EInsuranceName;
+  insuranceId?: string;
 }
 
 export interface CreateBillingDTO {

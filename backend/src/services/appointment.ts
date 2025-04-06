@@ -117,6 +117,12 @@ const scheduleAppointment = async ({
     patientId: JSON.stringify(patientId),
   });
 
+  // Check if patient has vital information
+  await PatientService.hasVitalInfo(patientId.toString());
+
+  if (paymentMode === EPaymentMode.INSURANCE)
+    await PatientService.hasValidInsurance(patientId.toString());
+
   // Convert inputs to ObjectId
   const objectIdSlotIds = slotIds.map((id) => new Types.ObjectId(id));
   const objectIdPatientId = new Types.ObjectId(patientId);

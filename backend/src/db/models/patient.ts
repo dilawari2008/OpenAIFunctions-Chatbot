@@ -24,6 +24,7 @@ const patientSchema: Schema = new Schema<IPatient>(
       enum: Object.values(EInsuranceName),
       default: EInsuranceName.NONE,
     },
+    insuranceId: { type: String },
     verificationCode: { type: String },
     deleted: { type: Boolean, default: false },
   },

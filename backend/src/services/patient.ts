@@ -143,6 +143,10 @@ const updatePatientDetails = async (
     updateData.insuranceName = patientData.insuranceName;
   }
 
+  if (patientData.insuranceId !== undefined) {
+    updateData.insuranceId = patientData.insuranceId;
+  }
+
   // Only update if there are fields to update
   if (Object.keys(updateData).length === 0) {
     return await getPatient(patientId);
@@ -170,6 +174,7 @@ const addDependant = async (
     fullName: string;
     dateOfBirth: Date;
     insuranceName?: EInsuranceName;
+    insuranceId?: string;
   }
 ) => {
   LOGGER.debug(`Adding dependant for patient ID: ${patientId}`);
@@ -200,6 +205,7 @@ const addDependant = async (
     fullName: dependantData.fullName,
     dateOfBirth: dependantData.dateOfBirth,
     insuranceName: dependantData.insuranceName || EInsuranceName.NONE,
+    insuranceId: dependantData?.insuranceId,
     contact: {
       contactRef: new Types.ObjectId(patientId),
     },
@@ -224,6 +230,7 @@ const getPatients = async ({
   fullName,
   phoneNumber,
   insuranceName,
+  insuranceId,
   dateOfBirth,
   contactRef,
   limit = 10,
@@ -232,6 +239,7 @@ const getPatients = async ({
   fullName?: string;
   phoneNumber?: number;
   insuranceName?: EInsuranceName;
+  insuranceId?: string;
   dateOfBirth?: Date;
   contactRef?: Types.ObjectId;
   limit?: number;
@@ -264,6 +272,10 @@ const getPatients = async ({
     query.insuranceName = insuranceName;
   }
 
+  if (insuranceId) {
+    query.insuranceId = insuranceId;
+  }
+
   if (dateOfBirth) {
     query.dateOfBirth = dateOfBirth;
   }
@@ -279,6 +291,73 @@ const getPatients = async ({
   return patients;
 };
 
+const hasVitalInfo = async (patientId: string): Promise<boolean> => {
+  const patient = await Patient.findById(patientId);
+  if (!patient) return false;
+  
+  const missingFields = [];
+  if (!patient.fullName) missingFields.push("fullName");
+  if (!patient.dateOfBirth) missingFields.push("dateOfBirth");
+  
+  if (missingFields.length > 0) {
+    throw createError(
+      HttpStatusCodes.BAD_REQUEST,
+      `Patient is missing required fields: ${missingFields.join(", ")}`
+    );
+  }
+  
+  return true;
+};
+
+const hasValidInsurance = async (patientId: string): Promise<boolean> => {
+  const patient = await Patient.findById(patientId);
+  if (!patient) return false;
+  
+  const missingFields = [];
+  if (!patient.insuranceName || patient.insuranceName === EInsuranceName.NONE) missingFields.push("insurance type");
+  if (!patient.insuranceId) missingFields.push("insurance ID");
+  
+  if (missingFields.length > 0) {
+    throw createError(
+      HttpStatusCodes.BAD_REQUEST,
+      `Patient is missing required insurance fields: ${missingFields.join(", ")}`
+    );
+  }
+  
+  return true;
+};
+
+const updateInsuranceDetails = async (
+  patientId: string,
+  insuranceName: EInsuranceName,
+  insuranceId: string
+): Promise<IPatient | null> => {
+  if (!insuranceName || insuranceName === EInsuranceName.NONE || !insuranceId) {
+    throw createError(
+      HttpStatusCodes.BAD_REQUEST,
+      "Both insurance name and insurance ID are required"
+    );
+  }
+
+  const updatedPatient = await Patient.findByIdAndUpdate(
+    patientId,
+    {
+      insuranceName,
+      insuranceId,
+    },
+    { new: true }
+  );
+
+  if (!updatedPatient) {
+    throw createError(
+      HttpStatusCodes.NOT_FOUND,
+      `Patient with ID ${patientId} not found`
+    );
+  }
+
+  return updatedPatient;
+};
+
 const PatientService = {
   upsertPatient,
   verifyPhoneNumber,
@@ -287,6 +366,9 @@ const PatientService = {
   updatePatientDetails,
   addDependant,
   getPatients,
+  hasVitalInfo,
+  hasValidInsurance,
+  updateInsuranceDetails,
 };
 
 export default PatientService;
