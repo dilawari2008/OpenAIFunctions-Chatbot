@@ -70,4 +70,37 @@ ChatRouter.post("/session", forwardRequest(ChatController.getSession));
  */
 ChatRouter.post("/merge", forwardRequest(ChatController.mergeSessions));
 
+/**
+ * @swagger
+ * /api/chat/process:
+ *   post:
+ *     summary: Process chat message
+ *     description: Processes a chat message and returns a response
+ *     tags: [Chat]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - sessionId
+ *               - message
+ *             properties:
+ *               sessionId:
+ *                 type: string
+ *                 description: Session ID
+ *               message:
+ *                 type: string
+ *                 description: Chat message to process
+ *     responses:
+ *       200:
+ *         description: Chat message processed successfully
+ *       400:
+ *         description: Invalid session ID or message
+ *       500:
+ *         description: Server error
+ */
+ChatRouter.post("/process", forwardRequest(ChatController.processChat));
+
 export default ChatRouter;

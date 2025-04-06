@@ -7,7 +7,6 @@ import {
   EInsuranceName,
   ENotificationDestination,
   EPaymentMode,
-  ESlotTier,
   EUrgency,
   EUserType,
 } from "@/enums";

@@ -1,6 +1,9 @@
-import { HttpStatusCodes } from "@/common/constants";
-import { EPaymentMode, EInsuranceName } from "@/enums";
-import createError from "http-errors";
+import {
+  EPaymentMode,
+  EInsuranceName,
+  EAppointmentType,
+  AppointmentTypeToPricingMap,
+} from "@/enums";
 
 const getPaymentMethods = async () => {
   // Return all available payment methods from the enum
@@ -18,9 +21,19 @@ const getInsuranceProviders = async () => {
   }));
 };
 
+const getAppointmentTypePricing = async () => {
+  // Return all available appointment types with their pricing
+  return Object.values(EAppointmentType).map((type) => ({
+    id: type,
+    name: type,
+    price: AppointmentTypeToPricingMap[type],
+  }));
+};
+
 const InfoService = {
   getPaymentMethods,
   getInsuranceProviders,
+  getAppointmentTypePricing,
 };
 
 export default InfoService;

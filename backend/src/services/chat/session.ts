@@ -4,10 +4,22 @@ import { ChatSession } from "@/db/models/session";
 import { Types } from "mongoose";
 import createError from "http-errors";
 
-const getSession = async (patientId?: string | Types.ObjectId) => {
+const getSession = async (patientId?: string | Types.ObjectId, sessionId?: string) => {
   LOGGER.debug(
-    `Getting or creating session for patientId: ${patientId || "none"}`
+    `Getting or creating session for patientId: ${patientId || "none"}, sessionId: ${sessionId || "none"}`
   );
+
+  // If sessionId is provided, try to find session by id first
+  if (sessionId) {
+    const sessionById = await ChatSession.findOne({
+      _id: new Types.ObjectId(sessionId),
+      deleted: false,
+    });
+
+    if (sessionById) {
+      return sessionById;
+    }
+  }
 
   if (patientId) {
     const patientObjectId = new Types.ObjectId(patientId);

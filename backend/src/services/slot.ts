@@ -2,18 +2,18 @@ import { HttpStatusCodes } from "@/common/constants";
 import LOGGER from "@/common/logger";
 import { Slot } from "@/db/models/slot";
 import { EAppointmentSlot, EAppointmentType } from "@/enums";
+import { getEndOfDayInUTC, getStartOfDayInUTC } from "@/utils";
 import createError from "http-errors";
+import moment from "moment-timezone";
 import { Types } from "mongoose";
 
 const getAvailableTimeSlotsForDateRange = async (from: Date, to: Date) => {
   LOGGER.debug(`Fetching available slots for date: ${from} to ${to}`);
 
   // Set the date to start of the day (00:00:00:000)
-  const startOfDay = new Date(from);
-  startOfDay.setHours(0, 0, 0, 0);
+  const startOfDay = getStartOfDayInUTC(from);
 
-  const endOfDay = new Date(to);
-  endOfDay.setHours(23, 59, 59, 999);
+  const endOfDay = getEndOfDayInUTC(to);
 
   // Find all available slots for the given date
   const availableSlots = await Slot.find({
@@ -73,13 +73,12 @@ const createSlotsForTheMonth = async () => {
   // Loop through each day from current date to end of month
   for (let day = new Date(currentDate); day <= endOfMonth; day.setDate(day.getDate() + 1)) {
     // Skip Sundays (0 is Sunday in JavaScript's getDay())
-    if (day.getDay() === 0) {
-      continue;
-    }
+    // if (day.getDay() === 0) {
+    //   continue;
+    // }
     
-    // Create a new date object for start of the day
-    const dateForSlot = new Date(day);
-    dateForSlot.setHours(0, 0, 0, 0);
+    // Create a new date object for start of the day in UTC
+    const dateForSlot = getStartOfDayInUTC(day);
     
     // Create 10 slots for each day
     for (let slotNum = 1; slotNum <= 10; slotNum++) {
@@ -127,10 +126,15 @@ const createSlotsForTheMonth = async () => {
   return { upsertedCount: 0 };
 };
 
+const getCurrentDateInUTC = () => {
+  return getStartOfDayInUTC(new Date());
+};
+
 const SlotService = {
   getAvailableTimeSlotsForDateRange,
   bookSlot,
   createSlotsForTheMonth,
+  getCurrentDateInUTC,
 };
 
 export default SlotService;

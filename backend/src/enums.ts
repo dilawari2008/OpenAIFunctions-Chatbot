@@ -43,6 +43,13 @@ export enum EAppointmentType {
   ROOT_CANAL = "ROOT_CANAL",
 }
 
+export const AppointmentTypeToPricingMap = {
+  [EAppointmentType.CLEANING]: 100,
+  [EAppointmentType.CHECKUP]: 200,
+  [EAppointmentType.EMERGENCY]: 300,
+  [EAppointmentType.ROOT_CANAL]: 400,
+};
+
 export enum EAppointmentSlot {
   SLOT_1 = "SLOT_1",
   SLOT_2 = "SLOT_2",

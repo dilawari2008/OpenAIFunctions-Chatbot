@@ -50,10 +50,16 @@ const createSlotsForTheMonth = async (req: Request, res: Response) => {
   res.sendFormatted(result);
 };
 
+const getCurrentDateInUTC = async (req: Request, res: Response) => {
+  const currentDate = await SlotService.getCurrentDateInUTC();
+  res.sendFormatted(currentDate);
+};
+
 const SlotController = {
   getAvailableTimeSlotsForDateRange,
   bookSlot,
   createSlotsForTheMonth,
+  getCurrentDateInUTC,
 };
 
 export default SlotController;

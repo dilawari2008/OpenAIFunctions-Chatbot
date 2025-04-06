@@ -115,4 +115,22 @@ SlotRouter.post(
   forwardRequest(SlotController.createSlotsForTheMonth)
 );
 
+/**
+ * @swagger
+ * /api/slots/current-date:
+ *   get:
+ *     summary: Get current date in UTC
+ *     description: Retrieves the current date in UTC
+ *     tags: [Slots]
+ *     responses:
+ *       200:
+ *         description: Current date in UTC
+ *       500:
+ *         description: Server error
+ */
+SlotRouter.get(
+  "/current-date",
+  forwardRequest(SlotController.getCurrentDateInUTC)
+);
+
 export default SlotRouter;
