@@ -61,6 +61,13 @@ const makePayment = async (
       billing.patientId.toString(),
       billing.contact
     );
+
+    NotificationService.createNotification(
+      `Refund for billing ${billing._id} of amount $${billing.amount}`,
+      EUrgency.MEDIUM,
+      EUserType.ADMIN,
+      ENotificationDestination.ADMIN_PANEL
+    );
   } else {
     NotificationService.createNotification(
       `Payment for billing ${billing._id} of amount $${billing.amount}`,
@@ -69,6 +76,13 @@ const makePayment = async (
       ENotificationDestination.SMS,
       billing.patientId.toString(),
       billing.contact
+    );
+
+    NotificationService.createNotification(
+      `Payment for billing ${billing._id} of amount $${billing.amount}`,
+      EUrgency.LOW,
+      EUserType.ADMIN,
+      ENotificationDestination.ADMIN_PANEL
     );
   }
 

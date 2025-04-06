@@ -4,6 +4,7 @@ import { Notification } from "@/db/models/notification";
 import { Patient } from "@/db/models/patient";
 import { ENotificationDestination, EUrgency, EUserType } from "@/enums";
 import { INotification } from "@/interfaces/model";
+import PatientService from "@/services/patient";
 import { generateShortCode } from "@/utils";
 import createError from "http-errors";
 import { Types } from "mongoose";
@@ -36,7 +37,11 @@ const createNotification = async (
   return notification;
 };
 
-const getNotificationsList = async (userType: EUserType, userId?: string) => {
+const getNotificationsList = async (
+  userType: EUserType,
+  userId?: string,
+  phoneNumber?: string
+) => {
   LOGGER.debug(
     `Fetching notifications for userType: ${userType}, userId: ${
       userId || "not provided"
@@ -45,8 +50,29 @@ const getNotificationsList = async (userType: EUserType, userId?: string) => {
 
   let query: any = { userType };
 
-  if (userType !== EUserType.ADMIN && userId) {
-    query.userId = new Types.ObjectId(userId);
+  if (userType === EUserType.ADMIN) {
+    // skip 4 now
+  } else if (userId && userType === EUserType.PATIENT) {
+    let patientIds = [new Types.ObjectId(userId)];
+
+    if (userType === EUserType.PATIENT) {
+      try {
+        const dependants = await PatientService.getDependants(userId);
+        if (dependants && dependants.length > 0) {
+          const dependantIds = dependants.map((dep) => dep._id);
+          patientIds = [...patientIds, ...dependantIds];
+        }
+      } catch (error) {
+        LOGGER.error("Error fetching dependants for notifications", { error });
+      }
+    }
+
+    query.userId = { $in: patientIds };
+  } else if (phoneNumber) {
+    query["destination.type"] = ENotificationDestination.SMS;
+    query["destination.address"] = phoneNumber;
+  } else {
+    return [];
   }
 
   const notifications = await Notification.find(query)
@@ -105,13 +131,28 @@ const sendEmergencyNotification = async (
   phoneNumber: string,
   patientName: string
 ) => {
+  let patient: any = {};
+  try {
+    patient = await PatientService.getPatientByPhoneNumber(Number(phoneNumber));
+  } catch (error) {
+    LOGGER.error("Error sending emergency notification", { error });
+  }
   const message = `Emergency: ${emergencySummary}. Patient Name: ${patientName}, Phone Number: ${phoneNumber}`;
 
-  await createNotification(
+  createNotification(
     message,
     EUrgency.HIGH,
     EUserType.ADMIN,
     ENotificationDestination.ADMIN_PANEL
+  );
+
+  createNotification(
+    message,
+    EUrgency.HIGH,
+    EUserType.PATIENT,
+    ENotificationDestination.SMS,
+    patient?._id?.toString(),
+    phoneNumber
   );
 };
 

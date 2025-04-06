@@ -209,14 +209,31 @@ const scheduleAppointment = async ({
     });
   }
 
+  let phoneNumber = patient?.phoneNumber;
+
+  if (!phoneNumber) {
+    // get the parent phone number
+    const parent = await PatientService.getParentPatient(
+      objectIdPatientId.toString()
+    );
+    phoneNumber = parent?.phoneNumber;
+  }
+
   // Send notification to patient
-  await NotificationService.createNotification(
+  NotificationService.createNotification(
     "Appointment scheduled successfully",
     EUrgency.LOW,
     EUserType.PATIENT,
     ENotificationDestination.SMS,
     objectIdPatientId.toString(),
-    patient.phoneNumber
+    phoneNumber
+  );
+
+  NotificationService.createNotification(
+    `Appointment scheduled successfully for patient ${patient.fullName} phone number ${patient.phoneNumber}`,
+    EUrgency.LOW,
+    EUserType.ADMIN,
+    ENotificationDestination.ADMIN_PANEL
   );
 };
 
@@ -273,13 +290,20 @@ const cancelAppointment = async ({
   await appointment.save();
 
   // Send notification to patient
-  await NotificationService.createNotification(
+  NotificationService.createNotification(
     `Appointment cancelled successfully.`,
     EUrgency.MEDIUM,
     EUserType.PATIENT,
     ENotificationDestination.SMS,
     objectIdPatientId.toString(),
     patient.phoneNumber
+  );
+
+  NotificationService.createNotification(
+    `Appointment cancelled successfully for patient ${patient.fullName} phone number ${patient.phoneNumber}`,
+    EUrgency.MEDIUM,
+    EUserType.ADMIN,
+    ENotificationDestination.ADMIN_PANEL
   );
 
   return appointment;
@@ -366,13 +390,20 @@ const rescheduleAppointment = async ({
   }
 
   // Send notification to patient
-  await NotificationService.createNotification(
+  NotificationService.createNotification(
     `Your appointment has been rescheduled to ${appointment.timing.toLocaleString()}.`,
     EUrgency.HIGH,
     EUserType.PATIENT,
     ENotificationDestination.SMS,
     objectIdPatientId.toString(),
     patient.phoneNumber
+  );
+
+  NotificationService.createNotification(
+    `Appointment rescheduled successfully for patient ${patient.fullName} phone number ${patient.phoneNumber}`,
+    EUrgency.MEDIUM,
+    EUserType.ADMIN,
+    ENotificationDestination.ADMIN_PANEL
   );
 
   return appointment;

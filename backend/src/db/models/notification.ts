@@ -1,7 +1,7 @@
 import DB from "@/db/db";
-import { EUserType, EUrgency } from "@/enums";
+import { EUserType, EUrgency, ENotificationDestination } from "@/enums";
 import { INotification } from "@/interfaces/model";
-import { Schema } from "mongoose";
+import { Schema, Types } from "mongoose";
 
 const notificationSchema: Schema = new Schema<INotification>(
   {
@@ -13,6 +13,14 @@ const notificationSchema: Schema = new Schema<INotification>(
     urgency: {
       type: String,
       enum: Object.values(EUrgency),
+    },
+    userId: { type: Types.ObjectId, ref: "Patient" },
+    destination: {
+      type: {
+        type: String,
+        enum: Object.values(ENotificationDestination),
+      },
+      address: { type: String },
     },
     deleted: { type: Boolean, default: false },
   },
