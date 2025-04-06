@@ -100,10 +100,26 @@ const generateOTP = async (phoneNumber: string) => {
   return { otp, patient };
 };
 
+const sendEmergencyNotification = async (
+  emergencySummary: string,
+  phoneNumber: string,
+  patientName: string
+) => {
+  const message = `Emergency: ${emergencySummary}. Patient Name: ${patientName}, Phone Number: ${phoneNumber}`;
+
+  await createNotification(
+    message,
+    EUrgency.HIGH,
+    EUserType.ADMIN,
+    ENotificationDestination.ADMIN_PANEL
+  );
+};
+
 const NotificationService = {
   createNotification,
   getNotificationsList,
   generateOTP,
+  sendEmergencyNotification,
 };
 
 export default NotificationService;
