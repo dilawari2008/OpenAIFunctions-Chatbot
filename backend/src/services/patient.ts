@@ -294,36 +294,39 @@ const getPatients = async ({
 const hasVitalInfo = async (patientId: string): Promise<boolean> => {
   const patient = await Patient.findById(patientId);
   if (!patient) return false;
-  
+
   const missingFields = [];
   if (!patient.fullName) missingFields.push("fullName");
   if (!patient.dateOfBirth) missingFields.push("dateOfBirth");
-  
+
   if (missingFields.length > 0) {
     throw createError(
       HttpStatusCodes.BAD_REQUEST,
       `Patient is missing required fields: ${missingFields.join(", ")}`
     );
   }
-  
+
   return true;
 };
 
 const hasValidInsurance = async (patientId: string): Promise<boolean> => {
   const patient = await Patient.findById(patientId);
   if (!patient) return false;
-  
+
   const missingFields = [];
-  if (!patient.insuranceName || patient.insuranceName === EInsuranceName.NONE) missingFields.push("insurance type");
+  if (!patient.insuranceName || patient.insuranceName === EInsuranceName.NONE)
+    missingFields.push("insurance type");
   if (!patient.insuranceId) missingFields.push("insurance ID");
-  
+
   if (missingFields.length > 0) {
     throw createError(
       HttpStatusCodes.BAD_REQUEST,
-      `Patient is missing required insurance fields: ${missingFields.join(", ")}`
+      `Patient is missing required insurance fields: ${missingFields.join(
+        ", "
+      )}`
     );
   }
-  
+
   return true;
 };
 
@@ -358,6 +361,66 @@ const updateInsuranceDetails = async (
   return updatedPatient;
 };
 
+const getDependants = async (patientId: string): Promise<IPatient[]> => {
+  LOGGER.debug(`Getting dependants for patient ID: ${patientId}`);
+
+  const projection = {
+    fullName: 1,
+    dateOfBirth: 1,
+    insuranceName: 1,
+    insuranceId: 1,
+  };
+
+  const dependants = await Patient.find(
+    {
+      "contact.contactRef": new Types.ObjectId(patientId),
+      deleted: false,
+    },
+    projection
+  );
+
+  return dependants;
+};
+
+const getParentPatient = async (
+  dependantId: string
+): Promise<IPatient | null> => {
+  LOGGER.debug(`Getting parent for dependant ID: ${dependantId}`);
+
+  const dependant = await Patient.findOne({
+    _id: new Types.ObjectId(dependantId),
+    deleted: false,
+  });
+
+  if (!dependant) {
+    throw createError(
+      HttpStatusCodes.NOT_FOUND,
+      `Dependant with ID ${dependantId} not found`
+    );
+  }
+  
+  if (!dependant.contact.contactRef) {
+    throw createError(
+      HttpStatusCodes.BAD_REQUEST,
+      `Patient with ID ${dependantId} is not a dependant (no parent reference found)`
+    );
+  }
+
+  const parentPatient = await Patient.findOne({
+    _id: dependant.contact.contactRef,
+    deleted: false,
+  });
+
+  if (!parentPatient) {
+    throw createError(
+      HttpStatusCodes.NOT_FOUND,
+      `Parent patient for dependant ID ${dependantId} not found`
+    );
+  }
+
+  return parentPatient;
+};
+
 const PatientService = {
   upsertPatient,
   verifyPhoneNumber,
@@ -369,6 +432,8 @@ const PatientService = {
   hasVitalInfo,
   hasValidInsurance,
   updateInsuranceDetails,
+  getDependants,
+  getParentPatient,
 };
 
 export default PatientService;

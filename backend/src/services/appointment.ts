@@ -378,12 +378,54 @@ const rescheduleAppointment = async ({
   return appointment;
 };
 
+const bulkScheduleAppointments = async (
+  appointmentRequests: {
+    slotId: Types.ObjectId | string;
+    patientId: Types.ObjectId | string;
+    paymentMode: EPaymentMode;
+  }[]
+): Promise<{ patientId: string; success: boolean; errorMsg?: string }[]> => {
+  LOGGER.debug("Bulk scheduling appointments", {
+    requests: JSON.stringify(appointmentRequests),
+  });
+
+  const results = await Promise.all(
+    appointmentRequests.map(async (request) => {
+      try {
+        await scheduleAppointment({
+          slotIds: [request.slotId],
+          patientId: request.patientId,
+          paymentMode: request.paymentMode,
+        });
+
+        return {
+          patientId: request.patientId.toString(),
+          success: true,
+        };
+      } catch (error: any) {
+        LOGGER.error("Error scheduling appointment", {
+          error: error.message,
+          stack: error.stack,
+        });
+        return {
+          patientId: request.patientId.toString(),
+          success: false,
+          errorMsg: error.message || "Failed to schedule appointment",
+        };
+      }
+    })
+  );
+
+  return results;
+};
+
 const AppointmentService = {
   getAppointments,
   getUpcomingAppointmentsForPatient,
   scheduleAppointment,
   cancelAppointment,
   rescheduleAppointment,
+  bulkScheduleAppointments,
 };
 
 export default AppointmentService;
