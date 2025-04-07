@@ -2,19 +2,20 @@ import { Request, Response, NextFunction } from "express";
 import { HttpStatusCodes } from "@/common/constants";
 import LOGGER from "@/common/logger";
 import NotificationService from "@/services/notification";
+import { EUserType } from "@/enums";
 
 /**
  * Get notifications for the current user
  */
 export const getNotifications = async (req: Request, res: Response) => {
-  const { userType, userId, phoneNumber } = req.body;
+  const { userType, userId, phoneNumber } = req.query;
 
   LOGGER.debug(`Getting notifications for user: ${userId}, type: ${userType}`);
 
   const notifications = await NotificationService.getNotificationsList(
-    userType,
-    userId,
-    phoneNumber
+    userType as EUserType,
+    userId as string,
+    phoneNumber as string
   );
 
   res.sendFormatted(notifications);

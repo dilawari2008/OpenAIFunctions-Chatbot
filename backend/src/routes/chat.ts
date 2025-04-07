@@ -9,5 +9,6 @@ ChatRouter.post("/session", forwardRequest(ChatController.createThread));
 ChatRouter.post("/merge", forwardRequest(ChatController.mergeSessions));
 ChatRouter.post("/process", forwardRequest(ChatController.processChat));
 ChatRouter.post("/assistant", forwardRequest(ChatController.createAssistant));
+ChatRouter.get("/messages", forwardRequest(ChatController.getMessagesbyThreadId));
 
 export default ChatRouter;

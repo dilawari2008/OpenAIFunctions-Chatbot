@@ -33,12 +33,19 @@ const createAssistant = async (req: Request, res: Response) => {
   res.sendFormatted(result);
 };
 
+const getMessagesbyThreadId = async (req: Request, res: Response) => {
+  const { threadId } = req.query;
+  const result = await AssistantService.getMessagesbyThreadId(threadId as string);
+  res.sendFormatted(result);
+};
+
 const ChatController = {
   getSession,
   mergeSessions,
   processChat,
   createThread,
   createAssistant,
+  getMessagesbyThreadId,
 };
 
 export default ChatController;

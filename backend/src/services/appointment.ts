@@ -270,7 +270,7 @@ const scheduleAppointment = async ({
   const createBillingDTO: CreateBillingDTO = {
     patientId: objectIdPatientId,
     name: patient.fullName || "",
-    contact: patient.phoneNumber,
+    contact: patient?.contact?.phoneNumber?.toString() || "",
     appointments: savedAppointmentIds,
     amount: totalAmount,
     paymentMode: paymentMode,
@@ -353,10 +353,10 @@ const scheduleAppointment = async ({
 
   LOGGER.debug("Sending notification to admin", {
     patientName: patient.fullName,
-    phoneNumber: patient.phoneNumber,
+    phoneNumber: patient?.contact?.phoneNumber,
   });
   NotificationService.createNotification(
-    `Appointment scheduled successfully for patient ${patient.fullName} phone number ${patient.phoneNumber}`,
+    `Appointment scheduled successfully for patient ${patient?.fullName} phone number ${patient?.contact?.phoneNumber}`,
     EUrgency.LOW,
     EUserType.ADMIN,
     ENotificationDestination.ADMIN_PANEL
@@ -453,7 +453,7 @@ const cancelAppointment = async ({
   await BillingService.makePayment({
     patientId: appointment.patientId,
     name: patient.fullName || "",
-    contact: patient.phoneNumber,
+    contact: patient?.contact?.phoneNumber?.toString() || "",
     appointments: [appointment._id],
     amount: refundAmount,
     paymentMode: EPaymentMode.CREDIT,
@@ -471,7 +471,7 @@ const cancelAppointment = async ({
   // Send notification to patient
   LOGGER.debug("Sending notification to patient", {
     patientId: objectIdPatientId.toString(),
-    phoneNumber: patient.phoneNumber,
+    phoneNumber: patient?.contact?.phoneNumber,
   });
   NotificationService.createNotification(
     `Appointment cancelled successfully.`,
@@ -479,16 +479,16 @@ const cancelAppointment = async ({
     EUserType.PATIENT,
     ENotificationDestination.SMS,
     objectIdPatientId.toString(),
-    patient.phoneNumber
+    patient?.contact?.phoneNumber?.toString() || ""
   );
   LOGGER.debug("Patient notification sent");
 
   LOGGER.debug("Sending notification to admin", {
     patientName: patient.fullName,
-    phoneNumber: patient.phoneNumber,
+    phoneNumber: patient?.contact?.phoneNumber?.toString() || "",
   });
   NotificationService.createNotification(
-    `Appointment cancelled successfully for patient ${patient.fullName} phone number ${patient.phoneNumber}`,
+    `Appointment cancelled successfully for patient ${patient.fullName} phone number ${patient?.contact?.phoneNumber?.toString()}`,
     EUrgency.MEDIUM,
     EUserType.ADMIN,
     ENotificationDestination.ADMIN_PANEL
@@ -643,7 +643,7 @@ const rescheduleAppointment = async ({
   // Send notification to patient
   LOGGER.debug("Sending notification to patient", {
     patientId: objectIdPatientId.toString(),
-    phoneNumber: patient.phoneNumber,
+    phoneNumber: patient?.contact?.phoneNumber?.toString() || "",
     appointmentTime: appointment.timing.toLocaleString(),
   });
   NotificationService.createNotification(
@@ -652,16 +652,16 @@ const rescheduleAppointment = async ({
     EUserType.PATIENT,
     ENotificationDestination.SMS,
     objectIdPatientId.toString(),
-    patient.phoneNumber
+    patient?.contact?.phoneNumber?.toString() || ""
   );
   LOGGER.debug("Patient notification sent");
 
   LOGGER.debug("Sending notification to admin", {
     patientName: patient.fullName,
-    phoneNumber: patient.phoneNumber,
+    phoneNumber: patient?.contact?.phoneNumber?.toString() || "",
   });
   NotificationService.createNotification(
-    `Appointment rescheduled successfully for patient ${patient.fullName} phone number ${patient.phoneNumber}`,
+    `Appointment rescheduled successfully for patient ${patient.fullName} phone number ${patient?.contact?.phoneNumber?.toString()}`,
     EUrgency.MEDIUM,
     EUserType.ADMIN,
     ENotificationDestination.ADMIN_PANEL
