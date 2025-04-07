@@ -1,6 +1,17 @@
+**Note:** At times the chat might go haywire or the model might hallucinate. If that happens, start a new chat using the refresh button on the top right corner.
+
 # Dental ChatBot
 
 ## Demo Links
+
+1. Introduction (4o) - https://www.loom.com/share/d0526e3b0a3148e685ab8c19a8ed70e3?sid=dcc7c7f9-8fba-4542-af29-6246d5d0e772
+2. Make an appointment (3.5-turbo) - https://www.loom.com/share/b31332847f584c31b77e98ba2c288399?sid=a60b618c-1422-4e69-ad5c-81efc23ee3d9
+3. Rescheduling and Cancellation (4o) - https://www.loom.com/share/a0e5950e555f45a2aecb5611d959baa4?sid=4afbda25-61e5-4375-80e2-34b282306ddb
+4. Back 2 Back Appoiintments (4o) - https://www.loom.com/share/863598aa52f843d8af54bd08c9ee8da2?sid=82edf16c-da70-4521-9f57-aedca3b8d881
+5. Emergency (4o) (no audio) - https://www.loom.com/share/ab878a1c27c94500b5f72cd0b927feff?sid=ba5728a5-52c1-4291-a641-15c9d9bea72c
+6. General Questions (4o) - https://www.loom.com/share/c18bc84dd9eb4326a94c3d20d03da07b?sid=d120f036-65f9-4f5e-b1f6-97681679ea3f
+
+At the end of the General questions video, the response was that the chatbot cannot submit the reponse to admin, please contact frontdesk (along with the contact number). This is right as bot was not provided with a function to do that.
 
 
 ## Tech Stack
@@ -44,9 +55,6 @@ On entering the message, the `/chat` api takes the message to the OpenAI assista
 Once executed, the response of the execution will be fed again into the assistant, and the assistant will again respond with a response, or call a tool again.
 
 Once all tool calls are over, the assistant will respond with the final response.
-
-
-**Note:** At times the chat might go haywire or the model might hallucinate. If that happens, start a new chat using the refresh button on the top right corner.
 
 ## Technical Decisions
 
