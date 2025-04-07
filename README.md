@@ -1,4 +1,4 @@
-_Note: At times the chat might go haywire or the model might hallucinate. If that happens, start a new chat using the refresh button on the top right corner._
+
 
 # Dental ChatBot
 
@@ -55,6 +55,8 @@ On entering the message, the `/chat` api takes the message to the OpenAI assista
 Once executed, the response of the execution will be fed again into the assistant, and the assistant will again respond with a response, or call a tool again.
 
 Once all tool calls are over, the assistant will respond with the final response.
+
+_Note: At times the chat might go haywire or the model might hallucinate. If that happens, start a new chat using the refresh button on the top right corner._
 
 ## Technical Decisions
 
