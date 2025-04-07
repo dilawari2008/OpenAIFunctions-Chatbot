@@ -235,7 +235,7 @@ const createAssistant = async () => {
     const assistant = await client.beta.assistants.create({
       name: "Dental Clinic Assistant",
       instructions: PromptLibrary.dentalBotPersonality,
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o",
       tools: [
         {
           type: "code_interpreter",
