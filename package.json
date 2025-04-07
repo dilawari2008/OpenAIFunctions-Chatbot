@@ -1,0 +1,12 @@
+{
+  "name": "dental-bot",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "concurrently \"cd backend && yarn start\" \"cd frontend && yarn dev\"",
+    "install": "concurrently \"cd backend && yarn install\" \"cd frontend && yarn install\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}
