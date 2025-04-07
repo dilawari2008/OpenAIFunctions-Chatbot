@@ -1,4 +1,4 @@
-**Note:** At times the chat might go haywire or the model might hallucinate. If that happens, start a new chat using the refresh button on the top right corner.
+_Note: At times the chat might go haywire or the model might hallucinate. If that happens, start a new chat using the refresh button on the top right corner._
 
 # Dental ChatBot
 
