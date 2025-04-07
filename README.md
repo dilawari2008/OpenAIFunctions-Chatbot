@@ -11,7 +11,7 @@ _Note: At times the chat might go haywire or the model might hallucinate. If tha
 5. Emergency (4o) (no audio) - https://www.loom.com/share/ab878a1c27c94500b5f72cd0b927feff?sid=ba5728a5-52c1-4291-a641-15c9d9bea72c
 6. General Questions (4o) - https://www.loom.com/share/c18bc84dd9eb4326a94c3d20d03da07b?sid=d120f036-65f9-4f5e-b1f6-97681679ea3f
 
-At the end of the General questions video, the response was that the chatbot cannot submit the reponse to admin, please contact frontdesk (along with the contact number). This is right as bot was not provided with a function to do that.
+_At the end of the General questions video, the response was that the chatbot cannot submit the reponse to admin, please contact frontdesk (along with the contact number). This is right as bot was not provided with a function to do that._
 
 
 ## Tech Stack
