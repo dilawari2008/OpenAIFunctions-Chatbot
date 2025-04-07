@@ -31,6 +31,10 @@ curl --location --request POST 'http://localhost:3001/api/slots/slots-for-the-mo
 
 ## Design Architecture:
 
+![Screenshot 2025-04-07 at 10 34 36 AM](https://github.com/user-attachments/assets/ea1ebd2b-f5f4-4141-af8d-37e5f852ee63)
+
+
+
 Consists of 5 collections: Patients, Appointments, Slots, Notifications, Billing.
 
 Whenever using the chat interface, it will initialize the chat with the existing chat thread. To start new chat, use the refresh button on the top right corner, which will create a new thread.
