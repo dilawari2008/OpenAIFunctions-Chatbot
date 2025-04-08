@@ -46,7 +46,7 @@ curl --location --request POST 'http://localhost:3001/api/slots/slots-for-the-mo
 
 
 
-Consists of 5 collections: Patients, Appointments, Slots, Notifications, Billing.
+Consists of 5 mongo collections: Patients, Appointments, Slots, Notifications, Billing.
 
 Whenever using the chat interface, it will initialize the chat with the existing chat thread. To start new chat, use the refresh button on the top right corner, which will create a new thread.
 
