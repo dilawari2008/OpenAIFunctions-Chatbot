@@ -16,6 +16,8 @@ const createThread = async () => {
 
 const processChat = async (threadId: string, message: string) => {
   let res: any = "";
+  let savedToolCallErrors: string[] = [];
+  
   try {
     // Check if there's an active run on the thread
     const runs = await client.beta.threads.runs.list(threadId);
@@ -38,7 +40,8 @@ const processChat = async (threadId: string, message: string) => {
         runStatus.status !== "expired"
       ) {
         if (runStatus.status === "requires_action") {
-          await handleToolCalls(threadId, runStatus, activeRun.id);
+          const errors = await handleToolCalls(threadId, runStatus, activeRun.id);
+          savedToolCallErrors = [...savedToolCallErrors, ...errors];
         }
 
         // Wait a bit before checking again
@@ -62,11 +65,13 @@ const processChat = async (threadId: string, message: string) => {
     });
 
     let runStatus = await client.beta.threads.runs.retrieve(threadId, run.id);
+    savedToolCallErrors = []; // Reset for this run
 
     // Poll for the run to complete
     while (runStatus.status !== "completed" && runStatus.status !== "failed") {
       if (runStatus.status === "requires_action") {
-        await handleToolCalls(threadId, runStatus, run.id);
+        const errors = await handleToolCalls(threadId, runStatus, run.id);
+        savedToolCallErrors = [...savedToolCallErrors, ...errors];
       }
 
       // Wait a bit before checking again
@@ -78,6 +83,44 @@ const processChat = async (threadId: string, message: string) => {
       throw new Error(
         `Run failed with error: ${runStatus.last_error?.message}`
       );
+    }
+
+    // Handle any tool call errors after the run is complete
+    if (savedToolCallErrors.length > 0) {
+      const errorMessage = `I encountered the following issues:\n${savedToolCallErrors.join(
+        "\n"
+      )}\nPlease provide a helpful response.`;
+      
+      await client.beta.threads.messages.create(threadId, {
+        role: "user",
+        content: errorMessage,
+      });
+
+      // Run the assistant again to get a response to the error
+      const errorRun = await client.beta.threads.runs.create(threadId, {
+        assistant_id: Config.assistantId,
+      });
+
+      // Wait for the assistant to process the error
+      let errorRunStatus = await client.beta.threads.runs.retrieve(
+        threadId,
+        errorRun.id
+      );
+      
+      while (
+        errorRunStatus.status !== "completed" &&
+        errorRunStatus.status !== "failed"
+      ) {
+        if (errorRunStatus.status === "requires_action") {
+          await handleToolCalls(threadId, errorRunStatus, errorRun.id);
+        }
+        
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        errorRunStatus = await client.beta.threads.runs.retrieve(
+          threadId,
+          errorRun.id
+        );
+      }
     }
 
     // Get the messages from the thread
@@ -115,6 +158,10 @@ const processChat = async (threadId: string, message: string) => {
         errorRunStatus.status !== "completed" &&
         errorRunStatus.status !== "failed"
       ) {
+        if (errorRunStatus.status === "requires_action") {
+          await handleToolCalls(threadId, errorRunStatus, errorRun.id);
+        }
+        
         await new Promise((resolve) => setTimeout(resolve, 500));
         errorRunStatus = await client.beta.threads.runs.retrieve(
           threadId,
@@ -145,12 +192,12 @@ const handleToolCalls = async (
   threadId: string,
   runStatus: any,
   runId: string
-) => {
+): Promise<string[]> => {
   const toolCalls = runStatus.required_action?.submit_tool_outputs.tool_calls;
+  let toolCallErrors: string[] = [];
 
   if (toolCalls && toolCalls.length > 0) {
     const toolOutputs = [];
-    let toolCallErrors = [];
 
     // Process each tool call
     for (const toolCall of toolCalls) {
@@ -197,19 +244,10 @@ const handleToolCalls = async (
         tool_outputs: toolOutputs,
       });
     }
-
-    // If there were any errors, add them to the thread as a user message
-    // so the assistant can respond to them properly
-    if (toolCallErrors.length > 0) {
-      const errorMessage = `I encountered the following issues:\n${toolCallErrors.join(
-        "\n"
-      )}\nPlease provide a helpful response.`;
-      await client.beta.threads.messages.create(threadId, {
-        role: "user",
-        content: errorMessage,
-      });
-    }
   }
+  
+  // Return errors instead of adding them as messages during active run
+  return toolCallErrors;
 };
 
 const getMessagesbyThreadId = async (
