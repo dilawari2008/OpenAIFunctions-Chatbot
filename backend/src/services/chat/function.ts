@@ -499,6 +499,7 @@ const tools = [
   rescheduleAppointment,
   bulkScheduleAppointments,
   sendEmergencyNotification,
+  updateInsuranceDetails,
 ];
 
 export default tools;
