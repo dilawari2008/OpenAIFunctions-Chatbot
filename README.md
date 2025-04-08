@@ -54,3 +54,4 @@
 5. To relate patients, dependants have a contact ref field to identify the parent patient.
 6. Start times are static for each slot, duration is fixed to 1hr for every appointment.
 7. Considering cost of each appointment type to be the same, this helps in keeping rescheduling easy as arrears in pricing across slots do not have to be adjusted, for simplicity sake.
+8. I started off by making details like insurance providers, pricing and someother details dynamic, which means to answer these questions, there were functions, which worked perfectly. But one would observe that these details are now static, i.e., right inside the system prompt. The only objective is to save tokens in the demo process. No technical challenge in making these details dynamic when releasing on prod.
