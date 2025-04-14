@@ -16,7 +16,7 @@
 - **AI Stack:** OpenAI GPT-4o, Assistant, Function Calling
 
 ## To Test the Chatbot:
-1. Add the env vars (shared in the email) in the `/backend/.env.dev` file.
+1. Add the env vars in the `/backend/.env.dev` file.
 2. Once you are in the folder, `ls` to check whether backend and frontend folders are present.
 3. Run `yarn install` to install the dependencies.
 4. Run `yarn start` to start the chatbot.
